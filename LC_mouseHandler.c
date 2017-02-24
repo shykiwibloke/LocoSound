@@ -42,7 +42,7 @@ void handleMouseDown(void)
  * actionClick - check all registered commands and action active ones.
  *
  *****************************************/
-void actionClick(int x, int y)
+void actionClick(int mx, int my)
 {
 	//iterates through the active commands checking to see if mouse click happened within their rectangle
 	//action all commands that match.
@@ -51,15 +51,16 @@ void actionClick(int x, int y)
 
 	for(f=0; f<MAX_MOUSE_COMMANDS; f++)
 	{
-		if(!m_mouseCommand[f].IsActive)
+		if(m_mouseCommand[f].IsActive)
 		{
 
-			if(m_mouseCommand[f].rect.x <= x &&
-                m_mouseCommand[f].rect.y <= y &&
-                m_mouseCommand[f].rect.w + x >= x &&
-                m_mouseCommand[f].rect.h + y >= y)
+			if((m_mouseCommand[f].rect.x < mx)
+            && (m_mouseCommand[f].rect.y < my)
+            && ((m_mouseCommand[f].rect.w + m_mouseCommand[f].rect.x) > mx)
+            && ((m_mouseCommand[f].rect.h + m_mouseCommand[f].rect.y) > my))
 			{
 				//mouse click was definitely inside an active area - go action its command
+                    fprintf(stderr,"about to send the S command\n");
 				SDL_PushEvent(&m_mouseCommand[f].event);
 
 			}
@@ -91,11 +92,11 @@ int registerCommand(SDL_Rect *rect, const char *cmd )
 			//Now create event construct from the cmd that will be used to action the 'click'
 			m_mouseCommand[f].event.type = SDL_KEYDOWN;
 			m_mouseCommand[f].event.key.keysym.sym = *cmd;
-
+        	return 0;
 		}
 	}
 
-	return 0;
+	return 1;       //error - no free registration slots
 
 }
 

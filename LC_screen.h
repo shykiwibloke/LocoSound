@@ -23,7 +23,7 @@
 
 // Font constants
 
-static const char LC_FONT_FILE[] = "/usr/share/fonts/truetype/freefont/FreeSans.ttf\0";
+
 
 //Basic Colour Definitions
 
@@ -66,8 +66,6 @@ typedef struct {
  *
  **********************************************/
 
-int						m_screenWidth;		   //width of the screen window  (can be set by command line options
-int						m_screenHeight;		   //height of the screen window
 LC_BarGraph_t			m_MotorGraph[6];	//Array to hold details of the 6 motor graphs
 SDL_Window*				m_window;           //Pointer to the SDL window
 SDL_Renderer*			m_renderer;			//main screen renderer used by all graphics objects

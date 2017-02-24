@@ -57,13 +57,12 @@ void screenService(void)
 int initScreen()
 {
 
-	//Init Globals
+	//Init Module Variables
 
 	m_window = NULL;
 	m_renderer = NULL;
 	m_background = NULL;
-	m_screenWidth = atoi(getConfigVal("SCREEN_WIDTH"));
-	m_screenHeight = atoi(getConfigVal("SCREEN_HEIGHT"));
+
 
 	atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
 
@@ -72,8 +71,8 @@ int initScreen()
 								"Loco Control",                    // window title
 								SDL_WINDOWPOS_UNDEFINED,           // initial x position
 								SDL_WINDOWPOS_UNDEFINED,           // initial y position
-								m_screenWidth,                     // width, in pixels
-								m_screenHeight,                               // height, in pixels
+								getConfigVal("SCREEN_WIDTH"),                     // width, in pixels
+								getConfigVal("SCREEN_HEIGHT"),                               // height, in pixels
 								SDL_WINDOW_SHOWN
 								//SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE  // flags - see below
 								);
@@ -104,7 +103,7 @@ int initScreen()
 		m_background = loadTextureFromBMP(m_renderer, "BACKGROUND.BMP");
 
 		//Load any buttons or other overlay images here
-		initButton(&m_startBtn,"START_BTN.BMP",35,100,150,150,"S");
+		initButton(&m_startBtn,"START_BTN.BMP",35,100,150,150,"s");    //commands must be lower case!
 
 
 		//Now initialize the fonts we wish to use
@@ -113,12 +112,12 @@ int initScreen()
 			exit(2);
 		}
 
-		m_MsgFont = TTF_OpenFont( LC_FONT_FILE, 12); //this opens a font style and sets a point size
+		m_MsgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 12); //this opens a font style and sets a point size
 		if (m_MsgFont == NULL) {
 			fprintf(stderr,"Could not open message font: %s\n",SDL_GetError());
 		}
 
-		m_BigFont = TTF_OpenFont( LC_FONT_FILE, 40); //this opens a font style and sets a point size
+		m_BigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 40); //this opens a font style and sets a point size
 		if (m_BigFont == NULL) {
 			fprintf(stderr,"Could not open big font: %s\n",SDL_GetError());
 		}

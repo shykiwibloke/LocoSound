@@ -32,6 +32,6 @@ typedef struct {
 //Function Prototypes
 int loadConfig(void);
 void putConfigVal(const char * label, const char * value);
-char * getConfigVal(const char * label);
-
+char * getConfigStr(const char * label);
+int getConfigVal(const char * label);
 #endif

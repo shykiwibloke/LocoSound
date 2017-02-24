@@ -543,32 +543,32 @@ int initAudio(void)
 	LC_LOADWAV(F_TRACTION,SF_TRACTION);
 
 	//Load up the Notch points in the Rev Up / Rev Down control Arrays from the config file
-	m_RevUp[0] = atoi(getConfigVal("REV_UP_IDLE"));
-	m_RevUp[1] = atoi(getConfigVal("REV_UP_NOTCH1"));
-	m_RevUp[2] = atoi(getConfigVal("REV_UP_NOTCH2"));
-	m_RevUp[3] = atoi(getConfigVal("REV_UP_NOTCH3"));
-	m_RevUp[4] = atoi(getConfigVal("REV_UP_NOTCH4"));
-	m_RevUp[5] = atoi(getConfigVal("REV_UP_NOTCH5"));
-	m_RevUp[6] = atoi(getConfigVal("REV_UP_NOTCH6"));
-	m_RevUp[7] = atoi(getConfigVal("REV_UP_NOTCH7"));
-	m_RevUp[8] = atoi(getConfigVal("REV_UP_NOTCH8"));
+	m_RevUp[0] = getConfigVal("REV_UP_IDLE");
+	m_RevUp[1] = getConfigVal("REV_UP_NOTCH1");
+	m_RevUp[2] = getConfigVal("REV_UP_NOTCH2");
+	m_RevUp[3] = getConfigVal("REV_UP_NOTCH3");
+	m_RevUp[4] = getConfigVal("REV_UP_NOTCH4");
+	m_RevUp[5] = getConfigVal("REV_UP_NOTCH5");
+	m_RevUp[6] = getConfigVal("REV_UP_NOTCH6");
+	m_RevUp[7] = getConfigVal("REV_UP_NOTCH7");
+	m_RevUp[8] = getConfigVal("REV_UP_NOTCH8");
 
-	m_RevDown[0] = atoi(getConfigVal("REV_DN_IDLE"));
-	m_RevDown[1] = atoi(getConfigVal("REV_DN_NOTCH1"));
-	m_RevDown[2] = atoi(getConfigVal("REV_DN_NOTCH2"));
-	m_RevDown[3] = atoi(getConfigVal("REV_DN_NOTCH3"));
-	m_RevDown[4] = atoi(getConfigVal("REV_DN_NOTCH4"));
-	m_RevDown[5] = atoi(getConfigVal("REV_DN_NOTCH5"));
-	m_RevDown[6] = atoi(getConfigVal("REV_DN_NOTCH6"));
-	m_RevDown[7] = atoi(getConfigVal("REV_DN_NOTCH7"));
-	m_RevDown[8] = atoi(getConfigVal("REV_DN_NOTCH8"));
+	m_RevDown[0] = getConfigVal("REV_DN_IDLE");
+	m_RevDown[1] = getConfigVal("REV_DN_NOTCH1");
+	m_RevDown[2] = getConfigVal("REV_DN_NOTCH2");
+	m_RevDown[3] = getConfigVal("REV_DN_NOTCH3");
+	m_RevDown[4] = getConfigVal("REV_DN_NOTCH4");
+	m_RevDown[5] = getConfigVal("REV_DN_NOTCH5");
+	m_RevDown[6] = getConfigVal("REV_DN_NOTCH6");
+	m_RevDown[7] = getConfigVal("REV_DN_NOTCH7");
+	m_RevDown[8] = getConfigVal("REV_DN_NOTCH8");
 
-	m_VolMax 		= atoi(getConfigVal("VOLUME_MAX"));
-	m_VolHalf 		= atoi(getConfigVal("VOLUME_HALF"));
-	m_VolBackground = atoi(getConfigVal("VOLUME_BACKGROUND"));
-	m_fadeShort		= atoi(getConfigVal("FADE_SHORT"));
-	m_fadeSTD 		= atoi(getConfigVal("FADE_STD"));
-	m_fadeLong 		= atoi(getConfigVal("FADE_LONG"));
+	m_VolMax 		= getConfigVal("VOLUME_MAX");
+	m_VolHalf 		= getConfigVal("VOLUME_HALF");
+	m_VolBackground = getConfigVal("VOLUME_BACKGROUND");
+	m_fadeShort		= getConfigVal("FADE_SHORT");
+	m_fadeSTD 		= getConfigVal("FADE_STD");
+	m_fadeLong 		= getConfigVal("FADE_LONG");
 
 	//Ensure the queues are in their default state
 	m_EngineQueue.Q_tag = 'E';				//Engine Q. (tags are only there to make debugging output easier to read)

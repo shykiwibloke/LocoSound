@@ -334,7 +334,6 @@ void closeProgram(void)
 void getCmdLineOptions(int argc, char * const argv[])
 {
 	int ich;
-	char	optbuf[100];
 
 	//set defaults
 	g_ProgramPath = getenv ("PATH");
@@ -355,16 +354,11 @@ void getCmdLineOptions(int argc, char * const argv[])
 			case 'c': /* Flags/Code when -c is specified todo*/
 				break;
 
-			case 's':  //screen width and height separated by comma
-				strcpy(optbuf,optarg);
-				fprintf(stderr, "Screen size %s \n",optbuf);     //todo - split this out
-				break;
-
 			case 'h':
 				fprintf(stdout,"Usage: -d sets debug mode, -p <pathname> sets the path for the data files, -s wwww,hhhh sets screen width and height");
 				break;
 			case '?':
-				if (optopt == 'p' || optopt == 's')
+				if (optopt == 'p')
 					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 				else
 					fprintf (stderr, "Unknown option -%c ignored\n", optopt);
