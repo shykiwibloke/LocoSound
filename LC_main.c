@@ -23,10 +23,10 @@ int main(int argc, char *argv[]) {
 	char	cmd_str[CMD_MAX_MSG_LEN];
 
 
-	getCmdLineOptions(argc, argv);  //parse and process any supplied commandline options
-	loadConfig();
-	initGlobals();
-	initSDL();
+	getCmdLineOptions(argc, argv);  //parse and process any supplied command line options
+	loadConfig();					//load the users config file (used by many modules)
+	initGlobals();					//Init the applications global variables
+	initSDL();						//Init the SDL systems we rely on for machine portability
 
 	//Main Loop
 	while(!quit) {
@@ -340,8 +340,6 @@ void getCmdLineOptions(int argc, char * const argv[])
 	g_ProgramPath = getenv ("PATH");
 	strcpy(g_DataFilePath,"./");
 	g_Debug = false;
-	g_screenWidth = DEFAULT_SCREEN_WIDTH;
-	g_screenHeight = DEFAULT_SCREEN_HEIGHT;
 
 	//now see what overrides the user has sent
 	while ((ich = getopt (argc, argv, "hds:p:")) != EOF) {

@@ -39,6 +39,7 @@ typedef struct {
  *****************************************/
 
 void handleMouseDown(void);
+void actionClick(int x, int y);
 int registerCommand(SDL_Rect *rect, const char *cmd);
 int unregisterCommand(int idx);
 

@@ -18,6 +18,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
+#include "LC_configReader.h"
 
 /*********************************************
 *
@@ -33,9 +34,9 @@
 #define  LC_MAX_CHANNELS		8
 #define  LC_PLAY_ONCE			0
 #define  LC_PLAY_LOOP			-1
-#define  LC_VOLUME_MAX			128
-#define  LC_VOLUME_HALF			64
-#define  LC_VOLUME_NONE			0
+//#define  LC_VOLUME_MAX			128
+//#define  LC_VOLUME_HALF			64
+//#define  LC_VOLUME_NONE			0
 /*******************************************
  *  Sound Module Specific File Name Declarations
  *  NB: The Order and number of these must match
@@ -63,38 +64,6 @@
 #define F_DYNBK    "DYNBK.WAV"
 #define F_AIRCOMP  "AIRCOMP.WAV"
 #define F_TRACTION "TRACTION.WAV"
-
-/*********************************************
-*
-* Rev Up and Rev Down start/stop times.
-* Move to xml later
-*
-*********************************************/
-
-typedef enum {
-	RU_IDLE		= 0,
-	RU_NOTCH1	= 200000,		//BYTES
-	RU_NOTCH2	= 385000,
-	RU_NOTCH3	= 530000,
-	RU_NOTCH4	= 700000,
-	RU_NOTCH5	= 875000,
-	RU_NOTCH6	= 1010000,
-	RU_NOTCH7	= 1225000,
-	RU_NOTCH8	= 99999999
-} LC_RevUp_t;
-
-typedef enum {
-	RD_NOTCH8	= 0,			//BYTES offset (seconds * sample rate)
-	RD_NOTCH7	= 60000,
-	RD_NOTCH6	= 120000,
-	RD_NOTCH5	= 180000,
-	RD_NOTCH4	= 240000,
-	RD_NOTCH3	= 310000,
-	RD_NOTCH2	= 340000,
-	RD_NOTCH1	= 480000,
-	RD_IDLE		= 710000
-
-} LC_RevDown_t;
 
 
 /*******************************************

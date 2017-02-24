@@ -15,20 +15,13 @@
 #include <unistd.h>
 #include "LC_utilities.h"
 #include "LC_mouseHandler.h"
+#include "LC_configReader.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 
-
-//Screen Layout constants
-
-#define DEFAULT_SCREEN_WIDTH	1024;
-#define DEFAULT_SCREEN_HEIGHT	600;
-
-
 // Font constants
-
 
 static const char LC_FONT_FILE[] = "/usr/share/fonts/truetype/freefont/FreeSans.ttf\0";
 
@@ -67,23 +60,14 @@ typedef struct {
 	SDL_Color		barColour;		//Colour of the bar on the bargraph
 } LC_BarGraph_t;
 
-
-/*********************************************
- *
- *  Global Variable Declarations
- *
- *********************************************/
-//todo - make these module level?
-int			g_screenWidth;		   //width of the screen window  (can be set by command line options
-int			g_screenHeight;		   //height of the screen window
-
 /**********************************************
  *
  *  Module Variable Declarations
  *
  **********************************************/
 
-
+int						m_screenWidth;		   //width of the screen window  (can be set by command line options
+int						m_screenHeight;		   //height of the screen window
 LC_BarGraph_t			m_MotorGraph[6];	//Array to hold details of the 6 motor graphs
 SDL_Window*				m_window;           //Pointer to the SDL window
 SDL_Renderer*			m_renderer;			//main screen renderer used by all graphics objects
@@ -91,8 +75,6 @@ SDL_Texture*			m_background;		//background graphics for the main screen
 LC_Button_t			    m_startBtn;			//graphic for the engine start button & related variables
 TTF_Font*				m_MsgFont;		    //The font we use for all status messages
 TTF_Font*				m_BigFont;			//Large font for throttle setting etc
-
-
 
 
 /*****************************************

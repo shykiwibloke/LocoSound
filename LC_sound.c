@@ -24,15 +24,20 @@ LC_SoundQueue_t  m_HornQueue;
 LC_SoundQueue_t	 m_AirCompQueue;
 LC_SoundQueue_t  m_TractionQueue;
 
-LC_RevUp_t		 m_RevUp[] = {RU_IDLE,RU_NOTCH1,RU_NOTCH2,RU_NOTCH3,RU_NOTCH4,RU_NOTCH5,RU_NOTCH6,RU_NOTCH7,RU_NOTCH8};
-LC_RevDown_t	 m_RevDown[] = {RD_IDLE,RD_NOTCH1,RD_NOTCH2,RD_NOTCH3,RD_NOTCH4,RD_NOTCH5,RD_NOTCH6,RD_NOTCH7,RD_NOTCH8};
+int	        	 m_RevUp[9];							//Holds the sample start/stop points for each notch in revup
+int	             m_RevDown[9];							//Holds the sample start/stop points for each notch in revdown
 
 
 int			     m_SndThrottlePos = -1;				     //Module store for our current internal setting. Used to detect change arriving
 bool			 m_SndHornPressed = 0;					 //ditto
 int			     m_SndDynBrakePos = 0;					 //ditto
 
-
+int				 m_VolMax = 128;						// loaded from config, set to usable value so sound can be heard if variables not in config
+int				 m_VolHalf = 64;
+int				 m_VolBackground = 100;
+int				 m_fadeShort = 500;
+int				 m_fadeSTD = 1500;
+int				 m_fadeLong = 10000;
 
 /*********************************************
 *
@@ -86,7 +91,7 @@ void changeThrottle(void)
 	//Handle throttle notch change up or down - also handles start and stop
 
 	if (m_EngineQueue.IsPlaying){
-		fadeOutQueue(&m_EngineQueue,1500);  //force current sounds to fade out gradually
+		fadeOutQueue(&m_EngineQueue,m_fadeSTD);  //force current sounds to fade out gradually
 	}
 
 	//clear out current settings
@@ -97,24 +102,24 @@ void changeThrottle(void)
 
 		if (m_SndThrottlePos <= -1)   //special case - startup sequence requested
 		{
-			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE,LC_VOLUME_MAX);
-			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE,LC_VOLUME_MAX);
-			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP,LC_VOLUME_MAX);
+			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE,m_VolMax);
+			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE,m_VolMax);
+			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP,m_VolMax);
 
 		}
 		else   //General Acceleration handling
 		{
 			//Queue appropriate rev-up sequence as well as new throttle setting.
 			fprintf(stderr,"_____\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
-			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], 1000, 1500, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,1500,1000,LC_PLAY_LOOP,LC_VOLUME_MAX);
+			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeSTD, m_fadeSTD, LC_PLAY_ONCE);
+			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolMax);
 
 
 			//Traction Motor Blowers
 			if  (g_LC_ControlState.ThrottlePos > 6)				//traction sound should play when traction motors are working
 			{
 				clearQueue(&m_TractionQueue);
-				queueSound(&m_TractionQueue, 0, SF_TRACTION, 10000, 0, LC_PLAY_LOOP,LC_VOLUME_HALF);
+				queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
 				playQueueItem(&m_TractionQueue);
 
 			}
@@ -129,13 +134,13 @@ void changeThrottle(void)
 		else  //General Deceleration handling
 		{
 			fprintf(stderr,"_____\n\nRev down from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
-			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  500, 2000, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,1500,1000,LC_PLAY_LOOP,LC_VOLUME_MAX);
+			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
+			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolMax);
 
 			//Traction Motor Blowers
 			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
 			{
-				fadeOutQueue(&m_TractionQueue,10000);  //force current sounds to fade out gradually
+				fadeOutQueue(&m_TractionQueue,m_fadeLong);  //force current sounds to fade out gradually
                 fprintf(stderr,"fading traction for engine for ten seconds now\n");
 			}
 		}
@@ -157,8 +162,8 @@ void changeDynamic(void)
 	{
 		//startup dyn braking
 		clearQueue(&m_DynBrakeQueue);
-		queueSound(&m_DynBrakeQueue,0,SF_DYNBK_ST,0,1000,LC_PLAY_ONCE,LC_VOLUME_MAX);
-		queueSound(&m_DynBrakeQueue,1,SF_DYNBK,1000,0,LC_PLAY_LOOP,LC_VOLUME_MAX);
+		queueSound(&m_DynBrakeQueue,0,SF_DYNBK_ST,0,m_fadeSTD,LC_PLAY_ONCE,m_VolMax);
+		queueSound(&m_DynBrakeQueue,1,SF_DYNBK,m_fadeSTD,0,LC_PLAY_LOOP,m_VolMax);
 		playQueueItem(&m_DynBrakeQueue);
 
 	}
@@ -170,24 +175,24 @@ void changeDynamic(void)
 		if  (g_LC_ControlState.DynBrakePos > 5)				//traction sound should play when traction motors are working
 		{
 			clearQueue(&m_TractionQueue);
-			queueSound(&m_TractionQueue, 0, SF_TRACTION, 5000, 0, LC_PLAY_LOOP,LC_VOLUME_MAX);
+			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolMax);
 			playQueueItem(&m_TractionQueue);
 
 		}
 		else if  (g_LC_ControlState.DynBrakePos > 0)		//traction sound should play when traction motors are working
 		{
 			clearQueue(&m_TractionQueue);
-			queueSound(&m_TractionQueue, 0, SF_TRACTION, 5000, 0, LC_PLAY_LOOP,LC_VOLUME_HALF);
+			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
 			playQueueItem(&m_TractionQueue);
 
 		}
 		else   //at idle
 		{
 			if (m_DynBrakeQueue.IsPlaying){
-				fadeOutQueue(&m_DynBrakeQueue,6000);  //force current sounds to fade out gradually
+				fadeOutQueue(&m_DynBrakeQueue,m_fadeLong);  //force current sounds to fade out gradually
 			}
 			if (m_TractionQueue.IsPlaying){
-				fadeOutQueue(&m_TractionQueue,6000);  //force current sounds to fade out gradually
+				fadeOutQueue(&m_TractionQueue,m_fadeLong);  //force current sounds to fade out gradually
 			}
 		}
 	}
@@ -205,9 +210,9 @@ void changeHorn(void)
 {
 		if (m_SndHornPressed)  //already playing - shut it up
 	{
-		fadeOutQueue(&m_HornQueue,500);  //force current sounds to fade out
+		fadeOutQueue(&m_HornQueue,m_fadeShort);  //force current sounds to fade out
 		clearQueue(&m_HornQueue);
-		queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE,LC_VOLUME_MAX);
+		queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE,m_VolMax);
 		playQueueItem(&m_HornQueue);
 		m_SndHornPressed = false;
 
@@ -216,8 +221,8 @@ void changeHorn(void)
 	{
 
 		clearQueue(&m_HornQueue);
-		queueSound(&m_HornQueue, 0, SF_HORN_ST, 0, 100, LC_PLAY_ONCE,LC_VOLUME_MAX);
-		queueSound(&m_HornQueue, 1, SF_HORN, 100, 100, LC_PLAY_LOOP,LC_VOLUME_MAX);
+		queueSound(&m_HornQueue, 0, SF_HORN_ST, 0, 100, LC_PLAY_ONCE,m_VolMax);
+		queueSound(&m_HornQueue, 1, SF_HORN, 100, 100, LC_PLAY_LOOP,m_VolMax);
 		playQueueItem(&m_HornQueue);
 		m_SndHornPressed = true;
 
@@ -251,14 +256,6 @@ void changeCompressor(void)
 					int loopCount,
 					Uint8 volume)
 {
-	/*
-	pQ->soundChunk[index].allocated = 0;  //dont deallocate as we are peeking into another chunk's buffer.
-	pQ->soundChunk[index].volume = volume;
-	pQ->soundChunk[index].abuf = m_SoundSamples[sound]->abuf;
-	pQ->soundChunk[index].alen = m_SoundSamples[sound]->alen;
-*/
-
-	//Mix_Chunk * QueueChunk = pQ->soundChunk[index];
 
 	pQ->soundChunk[index] = Mix_QuickLoad_RAW(m_SoundSamples[sound]->abuf,m_SoundSamples[sound]->alen);
 
@@ -316,9 +313,6 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 		pQ->loopCount[index] = loopCount;
 	}
 
-
-
-
 }
 
 /*********************************************
@@ -344,6 +338,8 @@ void playQueueItem(LC_SoundQueue_t *pQ)
 
  	//Play first queue sound on next available channel
 	pQ->channel = Mix_FadeInChannel(-1, pQ->soundChunk[pQ->currentItem],pQ->loopCount[pQ->currentItem], pQ->fadeInTime[pQ->currentItem]);
+
+	//todo - set the overall volume of the channel properly here (see hack on load of revdown in InitAudio)
 
 	if (pQ->channel == -1)
 	{
@@ -428,7 +424,7 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound got to the point of fading out?
 		else if (SDL_TICKS_PASSED(currentTime, pQ->currentFadeStart))
 		{
-			fprintf(stderr,"Fading out queue %c channel %d, index %d for %d ms\n", pQ->Q_tag, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);//IF the next sound is zerolength AND we are not going to be at the end of the queue
+			fprintf(stderr,"Fading out queue %c channel %d, index %d for %d ms\n", pQ->Q_tag, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);//IF the next sound is zero length AND we are not going to be at the end of the queue
 			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]+1);
 			finishPlayingSound(pQ);
 		}
@@ -523,6 +519,7 @@ int initAudio(void)
 		return 1;
 	}
 
+	//Load the sound samples using the macro - throw errors on any files not found
 	LC_LOADWAV(F_START,SF_START);
 	LC_LOADWAV(F_IDLE,SF_IDLE);
 	LC_LOADWAV(F_NOTCH1,SF_NOTCH1);
@@ -535,7 +532,7 @@ int initAudio(void)
 	LC_LOADWAV(F_NOTCH8,SF_NOTCH8);
 	LC_LOADWAV(F_REVUP,SF_REVUP);
 	LC_LOADWAV(F_REVDOWN, SF_REVDOWN);
-	m_SoundSamples[SF_REVDOWN]->volume = 0x40;		//half volume
+	m_SoundSamples[SF_REVDOWN]->volume = 0x40;		//half volume Hack - see notes in playQueueItem()
 	LC_LOADWAV(F_HORN, SF_HORN);
 	LC_LOADWAV(F_HORN_ST, SF_HORN_ST);
 	LC_LOADWAV(F_HORN_END, SF_HORN_END);
@@ -545,19 +542,47 @@ int initAudio(void)
     LC_LOADWAV(F_AIRCOMP, SF_AIRCOMP);
 	LC_LOADWAV(F_TRACTION,SF_TRACTION);
 
-	//Ensure the queues are in their default state
-	clearQueue(&m_EngineQueue);
-	m_EngineQueue.Q_tag = 'E';
-	clearQueue(&m_AirCompQueue);
-	m_AirCompQueue.Q_tag = 'A';
-	clearQueue(&m_DynBrakeQueue);
-	m_DynBrakeQueue.Q_tag = 'D';
-	clearQueue(&m_HornQueue);
-	m_HornQueue.Q_tag = 'H';
-	clearQueue(&m_TractionQueue);
-	m_TractionQueue.Q_tag = 'T';
+	//Load up the Notch points in the Rev Up / Rev Down control Arrays from the config file
+	m_RevUp[0] = atoi(getConfigVal("REV_UP_IDLE"));
+	m_RevUp[1] = atoi(getConfigVal("REV_UP_NOTCH1"));
+	m_RevUp[2] = atoi(getConfigVal("REV_UP_NOTCH2"));
+	m_RevUp[3] = atoi(getConfigVal("REV_UP_NOTCH3"));
+	m_RevUp[4] = atoi(getConfigVal("REV_UP_NOTCH4"));
+	m_RevUp[5] = atoi(getConfigVal("REV_UP_NOTCH5"));
+	m_RevUp[6] = atoi(getConfigVal("REV_UP_NOTCH6"));
+	m_RevUp[7] = atoi(getConfigVal("REV_UP_NOTCH7"));
+	m_RevUp[8] = atoi(getConfigVal("REV_UP_NOTCH8"));
 
-	atexit(closeAudio);    //memory will be freed when app exits properly
+	m_RevDown[0] = atoi(getConfigVal("REV_DN_IDLE"));
+	m_RevDown[1] = atoi(getConfigVal("REV_DN_NOTCH1"));
+	m_RevDown[2] = atoi(getConfigVal("REV_DN_NOTCH2"));
+	m_RevDown[3] = atoi(getConfigVal("REV_DN_NOTCH3"));
+	m_RevDown[4] = atoi(getConfigVal("REV_DN_NOTCH4"));
+	m_RevDown[5] = atoi(getConfigVal("REV_DN_NOTCH5"));
+	m_RevDown[6] = atoi(getConfigVal("REV_DN_NOTCH6"));
+	m_RevDown[7] = atoi(getConfigVal("REV_DN_NOTCH7"));
+	m_RevDown[8] = atoi(getConfigVal("REV_DN_NOTCH8"));
+
+	m_VolMax 		= atoi(getConfigVal("VOLUME_MAX"));
+	m_VolHalf 		= atoi(getConfigVal("VOLUME_HALF"));
+	m_VolBackground = atoi(getConfigVal("VOLUME_BACKGROUND"));
+	m_fadeShort		= atoi(getConfigVal("FADE_SHORT"));
+	m_fadeSTD 		= atoi(getConfigVal("FADE_STD"));
+	m_fadeLong 		= atoi(getConfigVal("FADE_LONG"));
+
+	//Ensure the queues are in their default state
+	m_EngineQueue.Q_tag = 'E';				//Engine Q. (tags are only there to make debugging output easier to read)
+	clearQueue(&m_EngineQueue);
+	m_AirCompQueue.Q_tag = 'A';				//Air Comp Q
+	clearQueue(&m_AirCompQueue);
+	m_DynBrakeQueue.Q_tag = 'D';			//Dynamic Fans
+	clearQueue(&m_DynBrakeQueue);
+	m_HornQueue.Q_tag = 'H';				//Horn Q
+	clearQueue(&m_HornQueue);
+	m_TractionQueue.Q_tag = 'T';			//Traction Blowers
+	clearQueue(&m_TractionQueue);
+
+	atexit(closeAudio);    					//memory will be freed when app exits properly
 
 	return 0;
 }
@@ -600,12 +625,13 @@ void freeBuffers(void)
 
 /*********************************************
 *
-*  Call back
+*  Call back Hack
 *
 *********************************************/
 
 void handleSoundCallback(int channel)
 {
+	//Used for debug only - inserts message in debug stream to show Mixer has recognized channel as completed playing
     fprintf(stderr,"Callback for channel %d\n",channel);
 }
 

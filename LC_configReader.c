@@ -38,14 +38,20 @@ config_t m_config[] =
 		{"REV_DN_NOTCH2", "340000" },
 		{"REV_DN_NOTCH1", "480000" },
 		{"REV_DN_IDLE", "710000" },
-		{"STD_FADE", "1500" },
-		{"LONG_FADE", "10000" },
+		{"FADE_SHORT","500"},
+		{"FADE_STD", "1500" },
+		{"FADE_LONG", "10000" }
+		
 	};
 
 const int m_CONFIG_SIZE = sizeof(m_config);
 
 int loadConfig()
 {
+	
+	//Opens the user config file and loads in any values as an overlay to the defaults listed above
+	//This way - if a user forgets to insert or misspells a value - we fall back on the default value
+	
 	setDataFilePath();		//config file must be in the data file directory
 
     FILE *file = fopen (CONFIG_FILE_NAME, "r");

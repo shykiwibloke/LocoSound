@@ -62,6 +62,8 @@ int initScreen()
 	m_window = NULL;
 	m_renderer = NULL;
 	m_background = NULL;
+	m_screenWidth = atoi(getConfigVal("SCREEN_WIDTH"));
+	m_screenHeight = atoi(getConfigVal("SCREEN_HEIGHT"));
 
 	atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
 
@@ -70,8 +72,8 @@ int initScreen()
 								"Loco Control",                    // window title
 								SDL_WINDOWPOS_UNDEFINED,           // initial x position
 								SDL_WINDOWPOS_UNDEFINED,           // initial y position
-								g_screenWidth,                     // width, in pixels
-								g_screenHeight,                               // height, in pixels
+								m_screenWidth,                     // width, in pixels
+								m_screenHeight,                               // height, in pixels
 								SDL_WINDOW_SHOWN
 								//SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE  // flags - see below
 								);
