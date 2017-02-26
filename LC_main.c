@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 	getCmdLineOptions(argc, argv);  //parse and process any supplied command line options
 	loadConfig();					//load the users config file (used by many modules)
 	initGlobals();					//Init the applications global variables
-	initSDL();						//Init the SDL systems we rely on for machine portability
+	initModules();						//Init the SDL systems we rely on for machine portability
 
 	//Main Loop
 	while(!quit) {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 		{
 			screenService();						//Service Screen & comms Subsystems once per second
 
-		//	len = readSerial(cmd_str,CMD_MAX_MSG_LEN);
+            len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 			if(len > 0)
 			{
 				actionCommand(cmd_str,len);
@@ -111,9 +111,6 @@ int handleKey(SDL_KeyboardEvent key) {
 			} else {
 				fprintf(stderr, "Input Error: Cannot set notch as neither Throttle nor Dynamic Brake are set Active\n");
 			}
-			break;
-		case SDLK_a:
-			//PrintState();    //todo
 			break;
 		case SDLK_d:
 			g_LC_ControlState.DynBrakeActive = true;
@@ -169,6 +166,7 @@ int handleKey(SDL_KeyboardEvent key) {
 			rtn = 1;
 
 		default:
+		    fprintf(stderr, "Unknown command '%c' received \n",key.keysym.sym);
 			break;
 
 	}
@@ -269,20 +267,24 @@ void initGlobals()
 
 /*********************************************
  *
- * InitSDL
+ * InitModules
  *
- * initializes the SDL Library
+ * initializes the SDL Library and various modules of the application
  *
  *********************************************/
-int initSDL()
+int initModules()
 {
+    fprintf(stderr,"Compiled against SDL version %d.%d.%d\n",SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL );
+
 	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
 		fprintf(stderr, "Unable to initialize SDL:  %s\n", SDL_GetError());
 		return 1;
 	}
 
-    fprintf(stderr,"SDL version %d.%d opened OK\n",SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+    SDL_version linked;
+    SDL_GetVersion(&linked);
+    fprintf(stderr,"Successfully Opened with SDL version %d.%d.%d\n",linked.major, linked.minor, linked.patch);
 
 	atexit(closeProgram);  //setup the closedown callback
 
@@ -298,13 +300,12 @@ int initSDL()
 		fprintf(stderr, "Initalising Audio failed, program terminated\n");
 		exit(1);    //error setting up
 	}
-/*
+
 	if (initSerial() != 0)    //not strictly SDL but safe place to put it
 	{
-		fprintf(stderr,"Error initializing comms to Loco Control Stand, program terminated\n");
-		exit(1);
+		fprintf(stderr,"Warning: Error initializing comms to Loco Control Stand. Keyboard Control Only Mode\n");
 	}
-*/
+
 	return 0; //success
 
 }
@@ -351,9 +352,6 @@ void getCmdLineOptions(int argc, char * const argv[])
 				strcpy(g_DataFilePath,optarg);
 				fprintf (stderr, "Data filepath set to %s.\n", g_DataFilePath);
 				break;
-			case 'c': /* Flags/Code when -c is specified todo*/
-				break;
-
 			case 'h':
 				fprintf(stdout,"Usage: -d sets debug mode, -p <pathname> sets the path for the data files, -s wwww,hhhh sets screen width and height");
 				break;
