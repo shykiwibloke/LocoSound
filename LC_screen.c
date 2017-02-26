@@ -107,18 +107,25 @@ int initScreen()
 
 
 		//Now initialize the fonts we wish to use
-		if(TTF_Init()==-1) {
-			printf("TTF_Init: %s\n", TTF_GetError());
+		if(TTF_Init()==-1)
+        {
+			printf("Error Initializing SDL True Type Font Module: %s\n", TTF_GetError());
 			exit(2);
 		}
 
+        const SDL_version *link_version=TTF_Linked_Version();
+        printf("SDL_ttf opened OK version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
+
+        //Now open the fonts we need
 		m_MsgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 12); //this opens a font style and sets a point size
-		if (m_MsgFont == NULL) {
+		if (m_MsgFont == NULL)
+        {
 			fprintf(stderr,"Could not open message font: %s\n",SDL_GetError());
 		}
 
 		m_BigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 40); //this opens a font style and sets a point size
-		if (m_BigFont == NULL) {
+		if (m_BigFont == NULL)
+        {
 			fprintf(stderr,"Could not open big font: %s\n",SDL_GetError());
 		}
 
@@ -388,7 +395,7 @@ void updateReverser(void)
 	}
 	else if(!g_LC_ControlState.DirForward && !g_LC_ControlState.DirReverse)
 	{
-		renderText("NEUTRAL", m_BigFont, LC_RED,Dynamic_rect);
+		renderText("NEUTRAL", m_BigFont, LC_GREEN,Dynamic_rect);
 	}
 }
 

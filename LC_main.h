@@ -45,7 +45,7 @@
 void actionCommand(char *str, int len);
 void initGlobals(void);
 void closeProgram(void);
-int  initSDL(void);
+int  initModules(void);
 void getCmdLineOptions(int argc, char * const argv[]);
 int  handleKey(SDL_KeyboardEvent key);
 

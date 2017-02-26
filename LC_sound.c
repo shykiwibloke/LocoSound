@@ -510,7 +510,9 @@ int initAudio(void)
         return 1;
     }
 
-    fprintf(stderr,"SDL Mixer version %d.%d opened OK\n",SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION);
+    const SDL_version *link_version=Mix_Linked_Version();
+    fprintf(stderr,"Successfully Opened with SDL_mixer version %d.%d.%d\n",link_version->major, link_version->minor, link_version->patch);
+
 	Mix_AllocateChannels(LC_MAX_CHANNELS);
 
 	Mix_ChannelFinished(handleSoundCallback);
