@@ -17,10 +17,10 @@
 	#include <fcntl.h>			//Used for UART
 	#include <termios.h>		//Used for UART
     #include <sys/ioctl.h>		//Used for UART
-	#include <SDL2/SDL.h>
-	#include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
+    #include "LC_configReader.h"
+//	#include <SDL2/SDL.h>
+//	#include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 
-	#define SERIAL_DEV "/dev/ttyAMA0"						//default device is for Raspi /todo - move to conf file
 
 	/*****************************************
 	 *
@@ -28,7 +28,7 @@
 	 *
 	 *****************************************/
 
-//None at this time
+    int m_serialhandle;
 
 	/*****************************************
 	 *
@@ -40,6 +40,6 @@
 	void closeSerial(void);
 	int writeSerial( const void* buf, int byteCount);
 	int readSerial(void* buf,const int MaxBytes);
-
+    unsigned int getConfigSpeed(void);
 
 #endif /* defined(__LocoControl__LC_serial__) */

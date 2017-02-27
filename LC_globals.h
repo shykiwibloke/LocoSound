@@ -33,14 +33,9 @@ typedef struct {
     bool  ConsoleHealthy;     //true when drivers console is OK  - NOTE - this whole struct should NEVER BE ZERO if healthy
     int	  ThrottlePos;        //-1=stopped, 0=Idle, 1-8 power on. No other values permitted
     int   DynBrakePos;        //0 = off, 1-8 for degrees of braking
-    int   ampsM1;           //amps returned as milliamps - to avoid using floats in comms
-    int   ampsM2;
-    int   ampsM3;
-    int   ampsM4;
-    int   ampsM5;
-    int   ampsM6;
-    int   speed;            //actual ground speed returned as meters per hour to avoid using floats
-    int   vbat;             //Current traction battery voltage
+    int   motorAmps[6];       //amps returned as milliamps - to avoid using floats in comms. Zero based array
+    int   speed;              //actual ground speed returned as meters per hour to avoid using floats
+    float vbat;               //Current traction battery voltage
 } LC_ControlState_t;
 
 

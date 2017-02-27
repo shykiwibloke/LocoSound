@@ -111,7 +111,7 @@ void changeThrottle(void)
 		{
 			//Queue appropriate rev-up sequence as well as new throttle setting.
 			fprintf(stderr,"_____\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
-			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeSTD, m_fadeSTD, LC_PLAY_ONCE);
+			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolMax);
 
 

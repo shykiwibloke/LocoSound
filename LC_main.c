@@ -50,12 +50,13 @@ int main(int argc, char *argv[]) {
 		}
 
 		soundService();								//Service Sound Subsystem - very frequently!
-		SDL_Delay(10);								//relinquish cpu for 10ms to allow other threads to execute.
+		SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
+                                                    //Found this to stabilize SDL_mixer
 
-
+        //Service Screen & comms Subsystems once per second
 		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
 		{
-			screenService();						//Service Screen & comms Subsystems once per second
+			screenService();
 
             len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 			if(len > 0)
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]) {
 
 		}
 
-	}
+	}  //End of Main Loop
 
 	closeProgram();									//Go clean up
 	return 0;
@@ -144,6 +145,12 @@ int handleKey(SDL_KeyboardEvent key) {
 			}
 			break;
 
+		case SDLK_n:
+			g_LC_ControlState.DirReverse = false;
+			g_LC_ControlState.DirForward = false;
+			fprintf(stderr, "Direction set to Neutral\n");
+			break;
+
 		case SDLK_r:
 			g_LC_ControlState.DirForward = false;
 			g_LC_ControlState.DirReverse = true;
@@ -162,8 +169,11 @@ int handleKey(SDL_KeyboardEvent key) {
 			g_LC_ControlState.DynBrakeActive = false;
 			fprintf(stderr, "Trottle now active\n");
 			break;
+
 		case SDLK_q:  //quit application
+		    fprintf(stderr,"Quitting Application at user request");
 			rtn = 1;
+            break;
 
 		default:
 		    fprintf(stderr, "Unknown command '%c' received \n",key.keysym.sym);
@@ -204,7 +214,7 @@ void actionCommand(char *str, int len)
 	cmd_class = str[0];
 	cmd_arg = str[2];
 	strncpy(cmd_msg,(char*) str+4, CMD_MAX_MSG_LEN);
-	//strlen(
+
 
 	switch(cmd_class)
 	{
@@ -220,10 +230,22 @@ void actionCommand(char *str, int len)
 			break;
 
 		case 'M':			//Motor amperage measurement - cmd-arg holds motor number and msg holds amps
-			//todo - place this away in the correct global variable eg g_LC_ControlState.ampsM1 = 0;
+
+            //ensure we dont have a null pointer or out-of-bounds motor number and cause a code exception
+			if(cmd_msg != NULL || cmd_arg >0 || cmd_arg <7)
+            {
+                g_LC_ControlState.motorAmps[cmd_arg-1] = atoi(cmd_msg);     //array is zero based , 0-5 for each motor
+            }
 			break;
 		case 'V':			//Voltage - battery voltage - cmd-arg will always be 1, msg holds volts
-			//todo
+            //ensure we dont have a null pointer
+
+			if(cmd_msg != NULL)
+            {
+                g_LC_ControlState.vbat = atoi(cmd_msg);     //get the vbat in milliamps
+                if (g_LC_ControlState.vbat != 0)
+                    g_LC_ControlState.vbat = g_LC_ControlState.vbat/1000; //get amps from milliamps
+            }
 			break;
 		default:
 			fprintf(stderr, "Unrecognised command string: %s", str);
@@ -246,12 +268,12 @@ void initGlobals()
 	//Init control structure once we have our path variable and other initial directives.
 
 	g_LC_ControlState.vbat = 0;
-	g_LC_ControlState.ampsM1 = 0;
-	g_LC_ControlState.ampsM2 = 0;
-	g_LC_ControlState.ampsM3 = 0;
-	g_LC_ControlState.ampsM4 = 0;
-	g_LC_ControlState.ampsM5 = 0;
-	g_LC_ControlState.ampsM6 = 0;
+	g_LC_ControlState.motorAmps[0] = 0;
+	g_LC_ControlState.motorAmps[1] = 0;
+	g_LC_ControlState.motorAmps[2] = 0;
+	g_LC_ControlState.motorAmps[3] = 0;
+	g_LC_ControlState.motorAmps[4] = 0;
+	g_LC_ControlState.motorAmps[5] = 0;
 	g_LC_ControlState.ConsoleHealthy = false;
 	g_LC_ControlState.DirForward = false;
 	g_LC_ControlState.DirReverse = false;

@@ -11,15 +11,6 @@
 
 /*****************************************
  *
- * Module Level Variables
- *
- *****************************************/
-
-int m_serialhandle = -1;
-int m_test = -1;
-
-/*****************************************
- *
  * initSerial() - initialize the serial port - called from the DRIVER initialisation
  *
  *****************************************/
@@ -30,7 +21,7 @@ int initSerial()
 	int mcs = TIOCM_RTS;
 
 	//-------------------------
-	//----- SETUP FOR USB CONNECTED ARDUINO -----
+	//----- SETUP FOR USB CONNECTED ARDUINO - MODIFY FOR YOUR SETUP-----
 	//-------------------------
 
 	//OPEN THE DEVICE as specified by constant SERIAL_DEV - which should be something like "/dev/ttyAMA0" on a raspi
@@ -46,11 +37,11 @@ int initSerial()
 	//
 	//	O_NOCTTY - When set and path identifies a terminal device, open() shall not cause the terminal device to become the controlling terminal for the process.
 
-	m_serialhandle = open(SERIAL_DEV, O_RDWR | O_NOCTTY | O_NDELAY );		//Open in non blocking read/write mode
+	m_serialhandle = open(getConfigStr("SERIAL_DEVICE"), O_RDWR | O_NOCTTY | O_NDELAY );		//Open in non blocking read/write mode
 	if (m_serialhandle < 0)
 	{
 		//ERROR - CAN'T OPEN SERIAL PORT
-		fprintf(stderr,"Error opening serial port %s - %s(%d).\n", SERIAL_DEV, strerror(errno), errno);
+		fprintf(stderr,"Error opening serial port %s - %s(%d).\n", getConfigStr("SERIAL_DEVICE"), strerror(errno), errno);
 		return 1;
 	}
 
@@ -63,13 +54,13 @@ int initSerial()
 
 	if (ioctl(m_serialhandle, TIOCEXCL) == -1)
 	{
-		printf("Error setting TIOCEXCL on %s - %s(%d).\n",SERIAL_DEV, strerror(errno), errno);
+		printf("Error setting TIOCEXCL on %s - %s(%d).\n",getConfigStr("SERIAL_DEVICE"), strerror(errno), errno);
 		return 1;
 	}
 
 	//CONFIGURE THE UART
 	//The flags (defined in /usr/include/termios.h - see http://pubs.opengroup.org/onlinepubs/007908799/xsh/termios.h.html):
-	//	Baud rate:- B1200, B2400, B4800, B9600, B19200, B38400, B57600, B115200, B230400, B460800, B500000, B576000, B921600, B1000000, B1152000, B1500000, B2000000, B2500000, B3000000, B3500000, B4000000
+	//	Supported Baud rates:- 9600, 19200, 38400, 57600, 115200 for this implementation
 	//	CSIZE:- CS5, CS6, CS7, CS8
 	//	CLOCAL - Ignore modem status lines
 	//	CREAD - Enable receiver
@@ -86,9 +77,11 @@ int initSerial()
 	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); //raw mode
 	options.c_cc[VMIN] = 1;
 	options.c_cc[VTIME] = 0;
-	cfsetspeed(&options, B115200);
+	cfsetspeed(&options, getConfigSpeed());
 	tcflush(m_serialhandle, TCIFLUSH);
 	tcsetattr(m_serialhandle, TCSANOW, &options);
+
+	//TODO - get BAUD RATE FROM CONFIG!
 
 	//clear RTS
 	ioctl(m_serialhandle, TIOCMBIC, &mcs);
@@ -104,9 +97,12 @@ int initSerial()
 
 void closeSerial(void)
 {
-//Called automatically at exit DO NOT CALL FROM YOUR CODE
-    close(m_serialhandle);
-    fprintf(stderr,"Serial Closed\n");
+    //Called automatically at exit DO NOT CALL FROM YOUR CODE
+    if( m_serialhandle != -1)
+    {
+        close(m_serialhandle);
+        fprintf(stderr,"Serial Closed OK\n");
+    }
 }
 
 /*****************************************
@@ -163,3 +159,46 @@ int readSerial(void* buf,const int MaxBytes)
 	return rx_length;
 }
 
+/*****************************************
+ *
+ * getSpeed()
+ *
+ *****************************************/
+
+unsigned int getConfigSpeed(void)
+{
+
+//	Supported Baud rates:- 9600, 19200, 38400, 57600, 115200 for this implementation
+//  swtich statement returns constants defined by termios and may be specific to target hardware
+//  this was deemed safer than returning the codes from the Raspi implementation of termios
+    unsigned int rate = 0;
+    int           cfg  = getConfigVal("BAUD_RATE");
+
+
+    switch(cfg)
+    {
+
+        case 9600:
+            rate = B9600;
+            break;
+        case 19200:
+            rate = B19200;
+            break;
+         case 38400:
+            rate = B38400;
+            break;
+        case 57600:
+            rate = B57600;
+            break;
+        case 115200:
+            rate = B115200;
+            break;
+        default:
+            fprintf(stderr,"BAUD_RATE %d in config not supported - use 9600,19200, 38400, 57600 or 115200.",cfg);
+            rate = B9600;
+            break;
+    }
+
+     fprintf(stderr,"BAUD_RATE set to %d",cfg);
+     return rate;
+}

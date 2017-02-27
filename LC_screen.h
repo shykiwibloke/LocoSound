@@ -73,8 +73,8 @@ SDL_Texture*			m_background;		//background graphics for the main screen
 LC_Button_t			    m_startBtn;			//graphic for the engine start button & related variables
 TTF_Font*				m_MsgFont;		    //The font we use for all status messages
 TTF_Font*				m_BigFont;			//Large font for throttle setting etc
-
-
+int                     m_maxAmps;          //Maximum amperage per motor - used to determine 100% for bar graph
+float                   m_onePercentAmps;   //One percent of the max amperage
 /*****************************************
  *
  * Function Prototypes
@@ -88,13 +88,13 @@ void initMotorGraph(void);
 void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int width, int border,  const SDL_Color backColour, const SDL_Color barColour);
 int  initButton(LC_Button_t* button, const char * BMPfilename, int xpos, int ypos, int height, int width, const char *cmd );
 void updateMotorGraphSet(void);
-void updateMotorGraph(LC_BarGraph_t* graph,int percent);
-void updateBarGraph(LC_BarGraph_t* graph, int percent, const SDL_Color barColour);
+void updateBarGraph(LC_BarGraph_t* graph, int milliamps, const SDL_Color barColour);
 void updateButton(LC_Button_t* button);
 void updateThrottle(void);
 void updateDynamic(void);
 void updateReverser(void);
 void updateSpeedo(void);
+void updateBattery(void);
 void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect);
 SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer,const char* fileName);
 

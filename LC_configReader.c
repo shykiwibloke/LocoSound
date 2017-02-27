@@ -15,13 +15,13 @@ config_t m_config[] =
 		{"SCREEN_HEIGHT", "600" },
 		{"FONT_FILE","/usr/share/fonts/truetype/freefont/FreeSans.ttf" },
 		{"LOCO_NAME","DFT7361" },
-		{"BAUD_RATE","B9600" },
+		{"BAUD_RATE","9600" },
 		{"SERIAL_DEVICE","/dev/ttyAMA0" },
 		{"VOLUME_MAX", "128" },
 		{"VOLUME_HALF", "64" },
 		{"VOLUME_BACKGROUND", "100" },
 		{"REV_UP_IDLE", "0" },
-		{"REV_UP_NOTCH1", "20000" },
+		{"REV_UP_NOTCH1", "200000" },
 		{"REV_UP_NOTCH2", "385000" },
 		{"REV_UP_NOTCH3", "530000" },
 		{"REV_UP_NOTCH4", "700000" },
@@ -40,11 +40,13 @@ config_t m_config[] =
 		{"REV_DN_IDLE", "710000" },
 		{"FADE_SHORT","500"},
 		{"FADE_STD", "1500" },
-		{"FADE_LONG", "10000" }
+		{"FADE_LONG", "10000" },
+		{"MAX_AMPS","25"}
+
 
 	};
 
-const int m_CONFIG_SIZE = sizeof(m_config);
+const int m_CONFIG_SIZE = 31;           //alter this if you add any more config lines above
 
 int loadConfig()
 {
@@ -64,7 +66,7 @@ int loadConfig()
 		{
 			char *hash = NULL, *equ = NULL, *s = NULL;
             char label[MAX_LABEL] = {0};
-            char value[MAX_LABEL] = {0};
+            char value[MAX_VALUE] = {0};
 
 			//check for # in the line = comment so chop off all characters after that
 			//by placing a NULL character in place of the # - effectively truncating the line
@@ -114,9 +116,10 @@ void putConfigVal(const char * label, const char * value)
 	while(f < m_CONFIG_SIZE)
 	{
 		if(strncmp(m_config[f].label,label,len)==0)   //if the label matches the stored label strncmp returns 0
+        {
 			memcpy(m_config[f].value,value, len);
 			return;
-
+        }
 		f++;
 	}
 
