@@ -14,7 +14,7 @@ Designed to work with an on-board touch screen, which shows the overall status o
 
 Sound routines are controlled using keyboard commands or USB serial from controller (see sep Arduino project):
 
-T = Throttle Mode  
+T = Throttle Mode
 D = Dynamic Brake Mode  
 S = Prime Mover Start Sequence  
 H = Horn start  
