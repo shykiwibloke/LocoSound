@@ -14,7 +14,6 @@ Designed to work with an on-board touch screen, which shows the overall status o
 
 Sound routines are controlled using keyboard commands or USB serial from controller (see sep Arduino project):
 
-<<<<<<< HEAD
 T = Throttle Mode
 D = Dynamic Brake Mode  
 S = Prime Mover Start Sequence  
@@ -22,18 +21,7 @@ H = Horn start 
 J = Horn stop  
 0 = Idle  
 1-8 = Notch 1 to 8 for both Dynamic and Throttle
-=======
-T = Throttle Mode,
-D = Dynamic Brake Mode,  
-S = Prime Mover Start Sequence,  
-H = Horn start,  
-J = Horn stop,  
-N = Neutral,
-F = Forward,
-R = Reverse,
-0 = Idle,  
-1-8 = Notch 1 to 8  (for both Dynamic and Throttle)
->>>>>>> origin/master
+
 
 System loads and uses small WAV file samples of each notch, horn and accel/decel etc. So easy to adapt to other types of locomotive
 Fine tuning of app is possible via the config file - so you can have the acceleration sound very smooth, or have the revs drop back slightly as the load comes on before the motor can rev up as is common with 2nd gen EMD units.
