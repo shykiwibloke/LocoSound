@@ -33,14 +33,11 @@ void screenService(void)
 			updateDynamic();
 			updateReverser();
 			updateSpeedo();
+			updateBattery();
 			if(g_LC_ControlState.ThrottlePos == -1)
 				updateButton(&m_startBtn);					//only want to show this button if the engine is not yet started.
-			updateMotorGraph(&m_MotorGraph[0],50);
-			updateMotorGraph(&m_MotorGraph[1],40);
-			updateMotorGraph(&m_MotorGraph[2],30);
-			updateMotorGraph(&m_MotorGraph[3],60);
-			updateMotorGraph(&m_MotorGraph[4],70);
-			updateMotorGraph(&m_MotorGraph[5],50);
+            else
+                updateMotorGraphSet();
 
 			SDL_RenderPresent(m_renderer);		//go refresh the screen and return
 		}
@@ -103,7 +100,7 @@ int initScreen()
 		m_background = loadTextureFromBMP(m_renderer, "BACKGROUND.BMP");
 
 		//Load any buttons or other overlay images here
-		initButton(&m_startBtn,"START_BTN.BMP",35,100,150,150,"s");    //commands must be lower case!
+		initButton(&m_startBtn,"START_BTN.BMP",180,340,150,150,"s");    //commands must be lower case!
 
 
 		//Now initialize the fonts we wish to use
@@ -129,6 +126,7 @@ int initScreen()
 			fprintf(stderr,"Could not open big font: %s\n",SDL_GetError());
 		}
 
+
 		//todo - testing. move somewhere else
         const SDL_Rect	Message_rect  = {486,406,500,12};	  //Rectangle for text messages
 		renderText("initializing - please wait", m_MsgFont, LC_LIGHTGRAY,Message_rect);
@@ -149,14 +147,12 @@ int initScreen()
 
 void closeScreen(void)
 {
-
 	//Called automatically at exit DO NOT CALL directly FROM YOUR CODE
 
 	SDL_DestroyWindow(m_window);
 	SDL_DestroyRenderer(m_renderer);
 
 	fprintf(stderr,"Screen Closed OK\n");
-
 
 }
 
@@ -169,77 +165,16 @@ void initMotorGraph(void)
 {
 	//initialize the six motor bar graph. Note this is not painted until next screen refresh
 
+    m_maxAmps = getConfigVal("MAX_AMPS");
+    if(m_maxAmps < 1) m_maxAmps = 1;        //just in case some wally sets the value wrong and causes a divide by zero!!
+    m_onePercentAmps = (float) (m_maxAmps / 100);
+
 	initBarGraph(&m_MotorGraph[0], 80 ,270,280,30,1,LC_ALMOND,LC_GREEN);
 	initBarGraph(&m_MotorGraph[1], 142,270,280,30,1,LC_ALMOND,LC_GREEN);
 	initBarGraph(&m_MotorGraph[2], 200,270,280,30,1,LC_ALMOND,LC_GREEN);
 	initBarGraph(&m_MotorGraph[3], 258,270,280,30,1,LC_ALMOND,LC_GREEN);
 	initBarGraph(&m_MotorGraph[4], 320,270,280,30,1,LC_ALMOND,LC_GREEN);
 	initBarGraph(&m_MotorGraph[5], 382,270,280,30,1,LC_ALMOND,LC_GREEN);
-
-}
-
-/*****************************
- *
- *  UpdateMotorGraphSet
- *
- *****************************/
-void updateMotorGraphSet(void)
-{
-	//updates each Motor's graph from global value IF IT HAS CHANGED
-	//Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
-
-	static int	lastm1 = 0,		//how we keep track of any changes since our last update
-				lastm2 = 0,
-				lastm3 = 0,
-				lastm4 = 0,
-				lastm5 = 0,
-				lastm6 = 0;
-
-	if(g_LC_ControlState.ampsM1 != lastm1)
-	{
-			updateMotorGraph(&m_MotorGraph[0],g_LC_ControlState.ampsM1);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-	if(g_LC_ControlState.ampsM2 != lastm2)
-	{
-			updateMotorGraph(&m_MotorGraph[1],g_LC_ControlState.ampsM2);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-	if(g_LC_ControlState.ampsM3 != lastm3)
-	{
-			updateMotorGraph(&m_MotorGraph[2],g_LC_ControlState.ampsM3);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-	if(g_LC_ControlState.ampsM4 != lastm4)
-	{
-			updateMotorGraph(&m_MotorGraph[3],g_LC_ControlState.ampsM4);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-	if(g_LC_ControlState.ampsM5 != lastm5)
-	{
-			updateMotorGraph(&m_MotorGraph[4],g_LC_ControlState.ampsM5);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-	if(g_LC_ControlState.ampsM6 != lastm6)
-	{
-			updateMotorGraph(&m_MotorGraph[5],g_LC_ControlState.ampsM6);
-			lastm1 = g_LC_ControlState.ampsM1;
-	}
-}
-
-/*****************************
- *
- *  UpdateMotorGraph
- *
- *****************************/
-void updateMotorGraph(LC_BarGraph_t* graph,int percent)
-{
-	//determines if the bar should be shown in red (discharge) or green (charging)
-
-	if(percent < 0)
-		updateBarGraph(graph,percent,LC_GREEN);
-	else
-		updateBarGraph(graph,percent,LC_RED);
 
 }
 
@@ -282,12 +217,34 @@ void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int widt
 
 /*****************************
  *
+ *  UpdateMotorGraphSet
+ *
+ *****************************/
+void updateMotorGraphSet(void)
+{
+	//updates each Motor's graph from global value.
+	//Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
+
+    int f = 0;
+
+    for(f=0; f<6; f++)
+	{
+        if(g_LC_ControlState.motorAmps[f] < 0)
+            updateBarGraph(&m_MotorGraph[f], g_LC_ControlState.motorAmps[f],LC_GREEN);
+        else
+            updateBarGraph(&m_MotorGraph[f], g_LC_ControlState.motorAmps[f],LC_RED);
+	}
+}
+
+
+/*****************************
+ *
  *
  * Update a Bar Graph
  *
  *
  ****************************/
-void updateBarGraph(LC_BarGraph_t* graph, int percent, const SDL_Color barColour)
+void updateBarGraph(LC_BarGraph_t* graph, int milliamps, const SDL_Color barColour)
 {
 
 	//takes an already initialised bar graph and redraws it to specified bar height and bar colour
@@ -298,7 +255,7 @@ void updateBarGraph(LC_BarGraph_t* graph, int percent, const SDL_Color barColour
 
 	//update bar size and colour
 	graph->barColour = barColour;
-	graph->bar.h = graph->onePercent * abs(percent);
+	graph->bar.h = (int) graph->onePercent * abs((float)milliamps/m_onePercentAmps);        //calculates percentage times pixels per percent
 	graph->bar.y = graph->anchor - graph->bar.h;
 
 	//redraw bar
@@ -401,12 +358,27 @@ void updateReverser(void)
 
 /*****************************
  *
- *  Update
+ *  Update Speedo
  *
  *****************************/
 void updateSpeedo(void)
 {
-	//todo
+	//TODO
+}
+
+/*****************************
+ *
+ *  Update Battery
+ *
+ *****************************/
+void updateBattery(void)
+{
+    static const SDL_Rect	Battery_rect = {234,173,200,25};    //custom numbers to match bmp
+
+    char str[15];
+
+    sprintf(str,"%.2f volts", g_LC_ControlState.vbat);
+    renderText(str, m_BigFont, LC_BLACK, Battery_rect);
 }
 
 /*****************************
