@@ -62,7 +62,7 @@ void soundService()
 	{
 		changeHorn();
 	}
-	if (g_LC_ControlState.ThrottlePos == 0)     //if throttle idle
+	if (g_LC_ControlState.ThrottlePos == 0)     //if throttle idle (i.e. engine has started already)
 	{
 		changeCompressor();
 	}
@@ -236,12 +236,23 @@ void changeHorn(void)
 void changeCompressor(void)
 {
 
-	//todo - random number + min time check here
-	//  if true then start the air compressor sound
+    int value = 2 + rand() % 6;            //2 - 7 mins range seed
+    static Uint32 torun = 60000;       //initial load is one minute after init, which should sound good with the start up sequence
 
-	//use srand(seed); to set range and rand(); to get a random number
+    if SDL_TICKS_PASSED(SDL_GetTicks(),torun)
+    {
+        //start the air compressor sound
+        fprintf(stderr,"Compressor triggered with random value of %d", value);
+		clearQueue(&m_AirCompQueue);
+		queueSound(&m_AirCompQueue, 0, SF_AIRCOMP, 0, 100, LC_PLAY_ONCE,m_VolMax);
+		playQueueItem(&m_AirCompQueue);
+
+        //set the next time to run
+        torun = SDL_GetTicks()+ (value * 60000);   //set current time plus value * one minute
+    }
 
 }
+
 /********************************************
 *
 * queueSound - add a sound and its parameters to the specified queue
