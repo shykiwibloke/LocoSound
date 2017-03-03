@@ -201,7 +201,7 @@ void actionCommand(char *str, int len)
 		return;
 	}
 
-	if(len < 5 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
+	if(len < 3 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
 	{
 		return;
 	}
@@ -209,8 +209,9 @@ void actionCommand(char *str, int len)
 	//string determined to be safe - extract the three fields we want
 	cmd_class = str[0];
 	cmd_arg = str[2];
-	strncpy(cmd_msg, &str[4], len);
-
+	
+	if(len > 4)     //only attempt to set the msg if there is one!
+		strncpy(cmd_msg, &str[4], len);
 
 	switch(cmd_class)
 	{
