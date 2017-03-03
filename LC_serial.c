@@ -78,6 +78,7 @@ int initSerial()
 	options.c_cc[VMIN] = 1;
 	options.c_cc[VTIME] = 0;
 	cfsetspeed(&options, getConfigSpeed());
+	//SDL_Delay(2000);                        //workaround for USB flush issue
 	tcflush(m_serialhandle, TCIFLUSH);
 	tcsetattr(m_serialhandle, TCSANOW, &options);
 
@@ -111,7 +112,7 @@ void closeSerial(void)
  *
  *****************************************/
 
-int writeSerial( const void* buf, int byteCount)
+int writeSerial( const char* buf, int byteCount)
 {
 
 	int count = 0;
@@ -134,29 +135,56 @@ int writeSerial( const void* buf, int byteCount)
  *****************************************/
 
 
-int readSerial(void* buf,const int MaxBytes)
+int readSerial(char* buf,const int MaxBytes)
+{
+ return serviceSerial(buf,MaxBytes);
+}
+
+/*****************************************
+ *
+ * serviceSerial()
+ *
+ *****************************************/
+
+int serviceSerial(char* cmdbuf,const int MaxBytes)
 {
 
-	//Reads complete lines including the newline char from specified serial port
+	//Reads bytes but only returns complete lines including the newline char from specified serial port
 	//Does not wait if no bytes ready to be read.
-	//returns the number of bytes read into the supplied buffer
+	//returns the number of bytes read into the supplied buffer as zero if still waiting for next newline
 
-	int rx_length = -1;
+	static int rxlen = 0;
+	char inChar = 0;
+	int rtn = 0;
 
-	//----- CHECK FOR ANY RX BYTES -----
+    memset(cmdbuf,0,MaxBytes);         //explicitly clear the supplied buffer so no danger of doing same command twice
+
+ 	//----- CHECK FOR ANY RX BYTES -----
 	if (m_serialhandle != -1)
 	{
-		// Read up to maxbytes characters from the port if they are there
-		rx_length = (int) read(m_serialhandle, buf, MaxBytes);		//Filestream, buffer to store in, number of bytes to read (max)
-		if (rx_length < 0 && errno != 35)
-		{
-			fprintf(stderr,"Error reading from serial port - %s(%d).\n", strerror(errno),errno);
-			rx_length = 0;
-		}
+
+		while (read(m_serialhandle, &inChar, 1) == 1)
+
+        {
+
+            m_assyBuf[rxlen++] = inChar;
+
+            if(inChar == '\n' || rxlen == MaxBytes - 1)
+            {
+                if(rxlen > 2)                       //orphan \n guard not interested in empty lines
+                {
+                    strncpy(cmdbuf,m_assyBuf,rxlen-1);   //copy in the string without the delimiter
+                    rtn = rxlen;                    //preserve number of bytes to return
+                }
+                rxlen = 0;                      //ready for another run
+                memset(m_assyBuf,0,MAX_CMD_LEN);
+                break;                          //jump out so recoved command can be processed
+            }
+        }
 
 	}
 
-	return rx_length;
+	return rtn;         //zero unless \n heen received.
 }
 
 /*****************************************

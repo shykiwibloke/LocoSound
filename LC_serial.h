@@ -27,8 +27,10 @@
 	 * Module Level Variables
 	 *
 	 *****************************************/
+    #define MAX_CMD_LEN 255
 
     int m_serialhandle;
+    char m_assyBuf[MAX_CMD_LEN];
 
 	/*****************************************
 	 *
@@ -38,8 +40,9 @@
 
 	int initSerial(void);
 	void closeSerial(void);
-	int writeSerial( const void* buf, int byteCount);
-	int readSerial(void* buf,const int MaxBytes);
+	int writeSerial( const char* buf, int byteCount);
+	int readSerial(char* buf,const int MaxBytes);
+	int serviceSerial(char* cmdbuf,const int MaxBytes);
     unsigned int getConfigSpeed(void);
 
 #endif /* defined(__LocoControl__LC_serial__) */

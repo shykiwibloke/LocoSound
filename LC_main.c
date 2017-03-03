@@ -52,21 +52,17 @@ int main(int argc, char *argv[]) {
 		soundService();								//Service Sound Subsystem - very frequently!
 		SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
                                                     //Found this to stabilize SDL_mixer
+        len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
+		if(len > 0)
+		{
+			actionCommand(cmd_str,len);
+		}
 
         //Service Screen & comms Subsystems once per second
 		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
 		{
 			screenService();
-
-            len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
-			if(len > 0)
-			{
-				actionCommand(cmd_str,len);
-			}
-
 			lastrun = SDL_GetTicks()+1000;
-
-			SDL_Delay(20);							//relinquish cpu for 20ms to allow other threads to execute.
 
 		}
 
@@ -198,22 +194,22 @@ void actionCommand(char *str, int len)
 	char		cmd_msg[len];
 	SDL_Event   event;
 
+    memset(cmd_msg,0,len);    //explicitly zero the buffer
+
 	if(str == NULL)
 	{
-		fprintf(stderr,"SplitMessage passed a null pointer - command cannot be extracted");
 		return;
 	}
 
-	if(strlen(str) < 5 || strlen(str) >= CMD_MAX_MSG_LEN )    //check bounds of message
+	if(len < 5 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
 	{
-		fprintf(stderr,"message length out of bounds. Command Ignored.");
 		return;
 	}
 
 	//string determined to be safe - extract the three fields we want
 	cmd_class = str[0];
 	cmd_arg = str[2];
-	strncpy(cmd_msg,(char*) str+4, CMD_MAX_MSG_LEN);
+	strncpy(cmd_msg, &str[4], len);
 
 
 	switch(cmd_class)
