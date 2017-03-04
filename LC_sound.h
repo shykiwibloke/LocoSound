@@ -148,6 +148,8 @@ void changeHorn(void);
 void changeCompressor(void);
 void queueSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 fadeIn, Uint32 fadeOut, int loopCount, Uint8 volume );
 void queuePartSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 startPos, Uint32 endPos, Uint32 fadeIn, Uint32 fadeOut, int loopCount );
+void showChannelSummary(void);
+void clearAllQueues(void);
 void clearQueue(LC_SoundQueue_t *pQ);
 void playQueueItem(LC_SoundQueue_t *pQ);
 void stopQueue(LC_SoundQueue_t *pQ, Uint32 fadeOut);

@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 					quit = 1;
 					break;
 				case SDL_KEYDOWN:
-				case SDL_KEYUP:
+				//case SDL_KEYUP:
 					quit = handleKey(g_event.key);
 					break;
 
@@ -96,7 +96,7 @@ int handleKey(SDL_KeyboardEvent key) {
 		case SDLK_8:
 			if (g_LC_ControlState.ThrottlePos < 0)
 			{
-				fprintf(stderr,"Error - Engine not started");
+				fprintf(stderr,"Start the Engine first!");
 				break;
 			}
 			if (g_LC_ControlState.ThrottleActive) {
@@ -109,6 +109,10 @@ int handleKey(SDL_KeyboardEvent key) {
 				fprintf(stderr, "Input Error: Cannot set notch as neither Throttle nor Dynamic Brake are set Active\n");
 			}
 			break;
+		case SDLK_c:
+ 			fprintf(stderr, "clearing sound queues\n");
+            clearAllQueues();               //resets the sound
+            break;
 		case SDLK_d:
 			g_LC_ControlState.DynBrakeActive = true;
 			g_LC_ControlState.ThrottleActive = false;
@@ -134,9 +138,9 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 
 		case SDLK_j:
-			if(g_LC_ControlState.HornPressed)
+            if(g_LC_ControlState.HornPressed)
 			{
-				g_LC_ControlState.HornPressed = false;    //horn press
+				g_LC_ControlState.HornPressed = false;    //horn depresss
 				fprintf(stderr, "Horn released\n");
 			}
 			break;
@@ -164,6 +168,10 @@ int handleKey(SDL_KeyboardEvent key) {
 			g_LC_ControlState.ThrottleActive = true;
 			g_LC_ControlState.DynBrakeActive = false;
 			fprintf(stderr, "Trottle now active\n");
+			break;
+
+		case SDLK_u:
+			showChannelSummary();
 			break;
 
 		case SDLK_q:  //quit application
@@ -201,7 +209,7 @@ void actionCommand(char *str, int len)
 		return;
 	}
 
-	if(len < 3 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
+	if(len < 5 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
 	{
 		return;
 	}
@@ -209,9 +217,8 @@ void actionCommand(char *str, int len)
 	//string determined to be safe - extract the three fields we want
 	cmd_class = str[0];
 	cmd_arg = str[2];
-	
-	if(len > 4)     //only attempt to set the msg if there is one!
-		strncpy(cmd_msg, &str[4], len);
+	strncpy(cmd_msg, &str[4], len);
+
 
 	switch(cmd_class)
 	{
@@ -220,6 +227,7 @@ void actionCommand(char *str, int len)
 			break;
 
 		case 'S':			//Sound command
+			fprintf(stderr,"XXXXXXXXXXXXXXXXXXXXXXXXXXX\n\n\n");
 			fprintf(stderr,"Sound: %c\n",cmd_arg);
 			event.type = SDL_KEYDOWN;
 			event.key.keysym.sym = cmd_arg;

@@ -222,11 +222,11 @@ unsigned int getConfigSpeed(void)
             rate = B115200;
             break;
         default:
-            fprintf(stderr,"BAUD_RATE %d in config not supported - use 9600,19200, 38400, 57600 or 115200.",cfg);
+            fprintf(stderr,"BAUD_RATE %d in config not supported - use 9600,19200, 38400, 57600 or 115200.\n",cfg);
             rate = B9600;
             break;
     }
 
-     fprintf(stderr,"BAUD_RATE set to %d",cfg);
+     fprintf(stderr,"BAUD_RATE set to %d\n",cfg);
      return rate;
 }

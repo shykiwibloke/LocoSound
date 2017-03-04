@@ -48,23 +48,24 @@ void soundService()
 {
 	// main hook to ensure sound is going. call frequently
 
-	//Check for changes to process
-
-	if (g_LC_ControlState.ThrottleActive && g_LC_ControlState.ThrottlePos != m_SndThrottlePos)
+	//As Idle is treated as 'trottle' position - need a way of terminating dynamic brake fans when done
+    if (g_LC_ControlState.ThrottleActive && g_LC_ControlState.ThrottlePos != m_SndThrottlePos)
 	{
 		changeThrottle();
 	}
-	if (g_LC_ControlState.DynBrakeActive && g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)
+
+    if (g_LC_ControlState.DynBrakeActive && g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)
 	{
 		changeDynamic();
 	}
+
 	if (g_LC_ControlState.HornPressed != m_SndHornPressed)
 	{
 		changeHorn();
 	}
 	if (g_LC_ControlState.ThrottlePos == 0)     //if throttle idle (i.e. engine has started already)
 	{
-		changeCompressor();
+		changeCompressor();                     //compressor runs on random time
 	}
 
 	//Go service the channels that are running (incl those just changed)
@@ -104,7 +105,7 @@ void changeThrottle(void)
 		{
 			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE,m_VolMax);
 			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE,m_VolMax);
-			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP,m_VolMax);
+			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP,m_VolBackground);
 
 		}
 		else   //General Acceleration handling
@@ -112,7 +113,7 @@ void changeThrottle(void)
 			//Queue appropriate rev-up sequence as well as new throttle setting.
 			fprintf(stderr,"_____\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
 			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolMax);
+			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolBackground);
 
 
 			//Traction Motor Blowers
@@ -135,7 +136,7 @@ void changeThrottle(void)
 		{
 			fprintf(stderr,"_____\n\nRev down from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
 			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolMax);
+			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP,m_VolBackground);
 
 			//Traction Motor Blowers
 			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
@@ -158,43 +159,40 @@ void changeThrottle(void)
 void changeDynamic(void)
 {
 
-	if(!m_DynBrakeQueue.IsPlaying && g_LC_ControlState.DynBrakePos > 0)  // if dyn brake is active - we are already playing the sound?
+    //if dynamic brake is NOT currently playing
+	if( !m_DynBrakeQueue.IsPlaying)
 	{
 		//startup dyn braking
 		clearQueue(&m_DynBrakeQueue);
-		queueSound(&m_DynBrakeQueue,0,SF_DYNBK_ST,0,m_fadeSTD,LC_PLAY_ONCE,m_VolMax);
-		queueSound(&m_DynBrakeQueue,1,SF_DYNBK,m_fadeSTD,0,LC_PLAY_LOOP,m_VolMax);
+		queueSound(&m_DynBrakeQueue,0,SF_DYNBK_ST,0,m_fadeSTD,LC_PLAY_ONCE,m_VolBackground);
+		queueSound(&m_DynBrakeQueue,1,SF_DYNBK,m_fadeSTD,0,LC_PLAY_LOOP,m_VolBackground);
 		playQueueItem(&m_DynBrakeQueue);
 
 	}
 
+    //if the position of the lever has changed
 	else if(g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)   //Alter braking effort
 	{
 
 		//Traction Motor Blowers
-		if  (g_LC_ControlState.DynBrakePos > 5)				//traction sound should play when traction motors are working
+		if  (g_LC_ControlState.DynBrakePos >= 5 && m_SndDynBrakePos < 5)				//traction sound should play when traction motors are working
 		{
 			clearQueue(&m_TractionQueue);
-			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolMax);
+			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolBackground);
 			playQueueItem(&m_TractionQueue);
 
 		}
-		else if  (g_LC_ControlState.DynBrakePos > 0)		//traction sound should play when traction motors are working
+		else if  (g_LC_ControlState.DynBrakePos > 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
 		{
 			clearQueue(&m_TractionQueue);
 			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
 			playQueueItem(&m_TractionQueue);
-
 		}
-		else   //at idle
-		{
-			if (m_DynBrakeQueue.IsPlaying){
-				fadeOutQueue(&m_DynBrakeQueue,m_fadeLong);  //force current sounds to fade out gradually
-			}
-			if (m_TractionQueue.IsPlaying){
-				fadeOutQueue(&m_TractionQueue,m_fadeLong);  //force current sounds to fade out gradually
-			}
-		}
+		else if  (g_LC_ControlState.DynBrakePos == 0 && m_SndDynBrakePos > 0)
+        {
+            fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
+            fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        }
 	}
 
 	m_SndDynBrakePos = g_LC_ControlState.DynBrakePos;
@@ -208,12 +206,13 @@ void changeDynamic(void)
 *********************************************/
 void changeHorn(void)
 {
-		if (m_SndHornPressed)  //already playing - shut it up
+    if (m_SndHornPressed)  //already playing - shut it up
 	{
 		fadeOutQueue(&m_HornQueue,m_fadeShort);  //force current sounds to fade out
 		clearQueue(&m_HornQueue);
 		queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE,m_VolMax);
 		playQueueItem(&m_HornQueue);
+        fprintf(stderr,"J Press\n");
 		m_SndHornPressed = false;
 
 	}
@@ -224,6 +223,7 @@ void changeHorn(void)
 		queueSound(&m_HornQueue, 0, SF_HORN_ST, 0, 100, LC_PLAY_ONCE,m_VolMax);
 		queueSound(&m_HornQueue, 1, SF_HORN, 100, 100, LC_PLAY_LOOP,m_VolMax);
 		playQueueItem(&m_HornQueue);
+        fprintf(stderr,"H Press\n");
 		m_SndHornPressed = true;
 
 	}
@@ -244,7 +244,7 @@ void changeCompressor(void)
         //start the air compressor sound
         fprintf(stderr,"Compressor triggered with random value of %d", value);
 		clearQueue(&m_AirCompQueue);
-		queueSound(&m_AirCompQueue, 0, SF_AIRCOMP, 0, 100, LC_PLAY_ONCE,m_VolMax);
+		queueSound(&m_AirCompQueue, 0, SF_AIRCOMP, 0, 100, LC_PLAY_ONCE,m_VolBackground);
 		playQueueItem(&m_AirCompQueue);
 
         //set the next time to run
@@ -303,7 +303,7 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 	bufstart += startPos;					//startPos is the offset from the buffer start
 	reqlen = endPos - startPos;				//calculates the actual required length.
 
-	/*   Debug code only - TODO - place in bounds checking once verified*/
+/*   Debug code only
 	fprintf(stderr,"_______________\nFile buffer starts at \t\t %p \n",m_SoundSamples[sound]->abuf);
 	fprintf(stderr,"File length is \t\t %d bytes \n",slen);
 	fprintf(stderr,"File ends at address \t\t %p bytes \n",m_SoundSamples[sound]->abuf + slen);
@@ -311,7 +311,7 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 	fprintf(stderr,"So Play starting address is \t\t %p bytes \n",(void *)bufstart);
 	fprintf(stderr,"Play length is \t\t %d bytes \n",reqlen);
 	fprintf(stderr,"Play ending address is \t\t %X \n\n",bufstart + reqlen);
-
+*/
 	//bounds checking
 	if(bufstart == 0 || reqlen == 0 || reqlen > slen || startPos >= endPos)
 		fprintf(stderr,"Specified mix_chunk buffer, requested length and/or start/stop positions invalid\n");
@@ -362,22 +362,6 @@ void playQueueItem(LC_SoundQueue_t *pQ)
 		pQ->IsPlaying = true;
 		fprintf(stderr,"Queue %c Sound %d assigned channel %d and playing OK \n",pQ->Q_tag,pQ->currentItem, pQ->channel);
 
-		int f = 0;
-
-        fprintf(stderr,"\n_______________\n\n");    //signal start of new set of commands
-		fprintf(stderr, "Chan Summary\n\n");
-
-
-		for(f=0; f<LC_MAX_CHANNELS;f++)
-        {
-            if(Mix_Playing(f))
-            {
-                fprintf(stderr,"%d channel is playing\n", f);
-            } else {
-                fprintf(stderr,"%d channel is free\n", f);
-            }
-         }
-
 	}
 
 }
@@ -426,8 +410,6 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 			{
 				fprintf(stderr,"Queue %c chan %d confirmed expired\n",pQ->Q_tag,pQ->channel);
 
-//TODO - HOW BEST TO SEE CHUNK REMOVED ? FLAG SET ON CALLBACK?
-//				Mix_FreeChunk(pQ->soundChunk[pQ->currentItem]);
 			}
 			finishPlayingSound(pQ);
 
@@ -469,11 +451,62 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 	}
 }
 
+/*********************************************
+ *
+ * Shows the status of all the sound channels
+ *
+ *********************************************/
+void showChannelSummary(void)
+{
 
+    int f = 0;
+
+    fprintf(stderr,"\n_______________\n\n");    //signal start of new set of commands
+    fprintf(stderr, "Chan Update\n\n");
+
+
+    for(f=0; f<LC_MAX_CHANNELS;f++)
+    {
+        if(Mix_Playing(f))
+        {
+            fprintf(stderr,"%d channel is playing\n", f);
+        } else {
+            fprintf(stderr,"%d channel is free\n", f);
+        }
+     }
+}
 
 /*********************************************
  *
- * Clear Queue  - clears the specified que to default state
+ * Clear all Queues  - clears all queues to default state
+ *
+ *********************************************/
+ void clearAllQueues(void)
+ {
+    int f = 0;
+
+    for(f=0;f<LC_MAX_CHANNELS;f++)
+    {
+               Mix_FadeOutChannel(f,1);
+    }
+
+    //Ensure the queues are in their default state
+	m_EngineQueue.Q_tag = 'E';				//Engine Q. (tags are only there to make debugging output easier to read)
+	clearQueue(&m_EngineQueue);
+	m_AirCompQueue.Q_tag = 'A';				//Air Comp Q
+	clearQueue(&m_AirCompQueue);
+	m_DynBrakeQueue.Q_tag = 'D';			//Dynamic Fans
+	clearQueue(&m_DynBrakeQueue);
+	m_HornQueue.Q_tag = 'H';				//Horn Q
+	clearQueue(&m_HornQueue);
+	m_TractionQueue.Q_tag = 'T';			//Traction Blowers
+	clearQueue(&m_TractionQueue);
+
+ }
+
+/*********************************************
+ *
+ * Clear Queue  - clears the specified queue to default state
  *
  *********************************************/
 
@@ -495,10 +528,10 @@ void clearQueue(LC_SoundQueue_t *pQ)
 		pQ->loopCount[f] = 0;
 
 	}
-	if (pQ->channel > -1)
+	if (Mix_Playing(pQ->channel))
 	{
 		fprintf(stderr,"Queue %c with sound currently playing on channel %d cleared\n",pQ->Q_tag,pQ->channel);
-		pQ->channel = -1;         //set so next sound will be allocated a fresh mix channel
+ 		pQ->channel = -1;         //set so next sound will be allocated a fresh mix channel
 
 	}
 
@@ -583,17 +616,7 @@ int initAudio(void)
 	m_fadeSTD 		= getConfigVal("FADE_STD");
 	m_fadeLong 		= getConfigVal("FADE_LONG");
 
-	//Ensure the queues are in their default state
-	m_EngineQueue.Q_tag = 'E';				//Engine Q. (tags are only there to make debugging output easier to read)
-	clearQueue(&m_EngineQueue);
-	m_AirCompQueue.Q_tag = 'A';				//Air Comp Q
-	clearQueue(&m_AirCompQueue);
-	m_DynBrakeQueue.Q_tag = 'D';			//Dynamic Fans
-	clearQueue(&m_DynBrakeQueue);
-	m_HornQueue.Q_tag = 'H';				//Horn Q
-	clearQueue(&m_HornQueue);
-	m_TractionQueue.Q_tag = 'T';			//Traction Blowers
-	clearQueue(&m_TractionQueue);
+    clearAllQueues();
 
 	atexit(closeAudio);    					//memory will be freed when app exits properly
 
