@@ -65,6 +65,9 @@ void soundService()
 	}
 	if (g_LC_ControlState.ThrottlePos == 0)     //if throttle idle (i.e. engine has started already)
 	{
+		if(m_DynBrakeQueue.IsPlaying)
+            changeDynamic();                    //we are back to idle, and were in dynamic - go shut her down
+
 		changeCompressor();                     //compressor runs on random time
 	}
 
@@ -141,8 +144,8 @@ void changeThrottle(void)
 			//Traction Motor Blowers
 			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
 			{
-				fadeOutQueue(&m_TractionQueue,m_fadeLong);  //force current sounds to fade out gradually
-                fprintf(stderr,"fading traction for engine for ten seconds now\n");
+				fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+ 			    clearQueue(&m_TractionQueue);
 			}
 		}
 	}
@@ -182,16 +185,18 @@ void changeDynamic(void)
 			playQueueItem(&m_TractionQueue);
 
 		}
-		else if  (g_LC_ControlState.DynBrakePos > 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
+		else if  (g_LC_ControlState.DynBrakePos != 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
 		{
 			clearQueue(&m_TractionQueue);
 			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
 			playQueueItem(&m_TractionQueue);
 		}
-		else if  (g_LC_ControlState.DynBrakePos == 0 && m_SndDynBrakePos > 0)
+		else if  (g_LC_ControlState.DynBrakePos == 0)
         {
             fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
             fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+			clearQueue(&m_TractionQueue);
+		    clearQueue(&m_DynBrakeQueue);
         }
 	}
 
