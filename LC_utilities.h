@@ -12,7 +12,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <SDL2/SDL.h>
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 
@@ -34,6 +36,7 @@ char*					g_ProgramPath;		   //System Path this application and its files are ru
 
 int  setDataFilePath(void);
 int  setProgramFilePath(void);
+void iniFilePaths(void);
 char *LTrim(char *s);
 char *RTrim(char *s);
 char *Trim(char *s);

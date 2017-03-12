@@ -6,6 +6,9 @@
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
 
+#ifdef linux
+
+
 #include "LC_serial.h"
 
 
@@ -230,3 +233,4 @@ unsigned int getConfigSpeed(void)
      fprintf(stderr,"BAUD_RATE set to %d\n",cfg);
      return rate;
 }
+#endif // linux

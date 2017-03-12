@@ -22,8 +22,25 @@
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 
 // Font constants
+//x,y,w,h
+#ifdef linux
+    #define TTF_VERT_OFFSET
+#endif // linux
+#ifdef WIN32
+    #define TTF_VERT_OFFSET -11          //windows seems to offset the font downwards by a few pixels
+#endif // windows
 
+#define DYN_RECT_X 954
+#define DYN_RECT_Y 226 + TTF_VERT_OFFSET
 
+#define THR_RECT_X 954
+#define THR_RECT_Y 146 + TTF_VERT_OFFSET
+
+#define REV_RECT_X 794
+#define REV_RECT_Y 315 + TTF_VERT_OFFSET
+
+#define BAT_RECT_X 234
+#define BAT_RECT_Y 173 + TTF_VERT_OFFSET
 
 //Basic Colour Definitions
 

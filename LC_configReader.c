@@ -13,7 +13,7 @@ config_t m_config[] =
 	{
 		{"SCREEN_WIDTH", "1024" },
 		{"SCREEN_HEIGHT", "600" },
-		{"FONT_FILE","/usr/share/fonts/truetype/freefont/FreeSans.ttf" },
+		{"FONT_FILE","FreeSans.ttf" },
 		{"LOCO_NAME","DFT7361" },
 		{"BAUD_RATE","9600" },
 		{"SERIAL_DEVICE","/dev/ttyAMA0" },
@@ -117,7 +117,7 @@ void putConfigVal(const char * label, const char * value)
 	{
 		if(strncmp(m_config[f].label,label,len)==0)   //if the label matches the stored label strncmp returns 0
         {
-			memcpy(m_config[f].value,value, len);
+			memcpy(m_config[f].value,value, strlen(value));
 			return;
         }
 		f++;

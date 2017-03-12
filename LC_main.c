@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
 
 	int 	quit = 0;
 	Uint32 	lastrun = 0;
-	int		len = 0;
-	char	cmd_str[CMD_MAX_MSG_LEN];
 
+
+    iniFilePaths();
 
 	getCmdLineOptions(argc, argv);  //parse and process any supplied command line options
 	loadConfig();					//load the users config file (used by many modules)
@@ -52,11 +52,20 @@ int main(int argc, char *argv[]) {
 		soundService();								//Service Sound Subsystem - very frequently!
 		SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
                                                     //Found this to stabilize SDL_mixer
+
+// NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
+//   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
+
+#ifdef linux
+        int		len = 0;
+        char	cmd_str[CMD_MAX_MSG_LEN];
+
         len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 		if(len > 0)
 		{
 			actionCommand(cmd_str,len);
 		}
+#endif  // linux
 
         //Service Screen & comms Subsystems once per second
 		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
@@ -303,6 +312,10 @@ int initModules()
 {
     fprintf(stderr,"Compiled against SDL version %d.%d.%d\n",SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL );
 
+    #ifdef windows
+        SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
+    #endif // windows
+
 	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
 		fprintf(stderr, "Unable to initialize SDL:  %s\n", SDL_GetError());
@@ -327,12 +340,12 @@ int initModules()
 		fprintf(stderr, "Initalising Audio failed, program terminated\n");
 		exit(1);    //error setting up
 	}
-
+#ifdef linux
 	if (initSerial() != 0)    //not strictly SDL but safe place to put it
 	{
 		fprintf(stderr,"Warning: Error initializing comms to Loco Control Stand. Keyboard Control Only Mode\n");
 	}
-
+#endif
 	return 0; //success
 
 }
@@ -363,9 +376,6 @@ void getCmdLineOptions(int argc, char * const argv[])
 {
 	int ich;
 
-	//set defaults
-	g_ProgramPath = getenv ("PATH");
-	strcpy(g_DataFilePath,"./");
 	g_Debug = false;
 
 	//now see what overrides the user has sent

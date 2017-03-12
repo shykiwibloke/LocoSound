@@ -162,10 +162,10 @@ void changeThrottle(void)
 void changeDynamic(void)
 {
 
-    //if dynamic brake is NOT currently playing
-	if( !m_DynBrakeQueue.IsPlaying)
+    //if dynamic brake is NOT currently playing and lever is NOT at idle
+	if( !m_DynBrakeQueue.IsPlaying && g_LC_ControlState.DynBrakePos != 0)
 	{
-		//startup dyn braking
+		//startup dyn braking - stays the same irrespective of dyn brake handle position
 		clearQueue(&m_DynBrakeQueue);
 		queueSound(&m_DynBrakeQueue,0,SF_DYNBK_ST,0,m_fadeSTD,LC_PLAY_ONCE,m_VolBackground);
 		queueSound(&m_DynBrakeQueue,1,SF_DYNBK,m_fadeSTD,0,LC_PLAY_LOOP,m_VolBackground);
@@ -173,32 +173,31 @@ void changeDynamic(void)
 
 	}
 
-    //if the position of the lever has changed
-	else if(g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)   //Alter braking effort
-	{
+    //Traction Motor Blowers
 
-		//Traction Motor Blowers
-		if  (g_LC_ControlState.DynBrakePos >= 5 && m_SndDynBrakePos < 5)				//traction sound should play when traction motors are working
-		{
-			clearQueue(&m_TractionQueue);
-			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolBackground);
-			playQueueItem(&m_TractionQueue);
+    //if currently < 5 and moving to 5 or greater
+    if  (g_LC_ControlState.DynBrakePos >= 5 && m_SndDynBrakePos < 5)				//traction sound should play when traction motors are working
+    {
+        clearQueue(&m_TractionQueue);
+        queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolBackground);
+        playQueueItem(&m_TractionQueue);
 
-		}
-		else if  (g_LC_ControlState.DynBrakePos != 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
-		{
-			clearQueue(&m_TractionQueue);
-			queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
-			playQueueItem(&m_TractionQueue);
-		}
-		else if  (g_LC_ControlState.DynBrakePos == 0)
-        {
-            fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
-            fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
-			clearQueue(&m_TractionQueue);
-		    clearQueue(&m_DynBrakeQueue);
-        }
-	}
+    }
+    //if currently > 5 and moving to less than 5 but not to zero
+    else if  (g_LC_ControlState.DynBrakePos != 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
+    {
+        clearQueue(&m_TractionQueue);
+        queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP,m_VolHalf);
+        playQueueItem(&m_TractionQueue);
+    }
+    //if moving to zero
+    else if  (g_LC_ControlState.DynBrakePos == 0)
+    {
+        fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        clearQueue(&m_TractionQueue);
+        clearQueue(&m_DynBrakeQueue);
+    }
 
 	m_SndDynBrakePos = g_LC_ControlState.DynBrakePos;
 }
@@ -552,7 +551,9 @@ void clearQueue(LC_SoundQueue_t *pQ)
 int initAudio(void)
 {
 
-
+    #ifdef windows
+        SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
+    #endif // windows
     if(Mix_OpenAudio(LC_SOUND_SAMPLE_RATE, LC_SOUND_FORMAT, LC_NUM_CHANNELS, LC_CHUNK_SIZE))
 	{
         fprintf(stderr,"Unable to initialize SDL mixer: %s\n",SDL_GetError());

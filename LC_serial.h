@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 5/06/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-
+#ifdef linux
 #ifndef __LocoControl__LC_serial__
 	#define __LocoControl__LC_serial__
 
@@ -46,3 +46,5 @@
     unsigned int getConfigSpeed(void);
 
 #endif /* defined(__LocoControl__LC_serial__) */
+
+#endif // linux

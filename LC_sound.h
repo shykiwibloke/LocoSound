@@ -29,7 +29,7 @@
 #define  LC_SOUND_SAMPLE_RATE	22050
 #define  LC_SOUND_FORMAT		AUDIO_S16
 #define  LC_NUM_CHANNELS		2       //stereo
-#define  LC_CHUNK_SIZE			2048
+#define  LC_CHUNK_SIZE			1024 //2048
 #define  LC_SOUND_QUEUE_MAX		5      //number of samples that can be queued at any one time
 #define  LC_MAX_CHANNELS		8
 #define  LC_PLAY_ONCE			0

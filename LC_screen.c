@@ -131,8 +131,7 @@ int initScreen()
         const SDL_Rect	Message_rect  = {486,406,500,12};	  //Rectangle for text messages
 		renderText("initializing - please wait", m_MsgFont, LC_LIGHTGRAY,Message_rect);
 
-		initMotorGraph();    //todo - tidy this up - placeholder for testing
-
+		initMotorGraph();
 	}
 
 	return 0;   //success
@@ -307,7 +306,7 @@ void updateButton(LC_Button_t* button)
  *****************************/
 void updateThrottle(void)
 {
-    static const SDL_Rect	Throttle_rect = {954,146,25,25};    //custom numbers to match bmp
+    static const SDL_Rect	Throttle_rect = {THR_RECT_X,THR_RECT_Y,25,25};    //custom numbers to match bmp
 
     if(g_LC_ControlState.ThrottlePos > -1)
     {
@@ -323,7 +322,8 @@ void updateThrottle(void)
  *****************************/
 void updateDynamic()
 {
-    static const SDL_Rect	Dynamic_rect = {954,226,25,25};    //custom numbers to match bmp
+
+    static const SDL_Rect	Dynamic_rect = {DYN_RECT_X,DYN_RECT_Y,25,25};    //custom numbers to match bmp
 
     if(g_LC_ControlState.DynBrakePos > -1)
     {
@@ -340,7 +340,7 @@ void updateDynamic()
  *****************************/
 void updateReverser(void)
 {
-    static const SDL_Rect	Dynamic_rect = {794,315,25,25};    //custom numbers to match bmp
+    static const SDL_Rect	Dynamic_rect = {REV_RECT_X,REV_RECT_Y,25,25};    //custom numbers to match bmp
 
 	if(g_LC_ControlState.DirForward)
 	{
@@ -373,7 +373,7 @@ void updateSpeedo(void)
  *****************************/
 void updateBattery(void)
 {
-    static const SDL_Rect	Battery_rect = {234,173,200,25};    //custom numbers to match bmp
+    static const SDL_Rect	Battery_rect = {BAT_RECT_X,BAT_RECT_Y,200,25};    //custom numbers to match bmp
 
     char str[15];
 

@@ -29,13 +29,26 @@ int setDataFilePath(void)
  *********************************************/
 int setProgramFilePath(void)
 {
-	if(chdir(g_ProgramPath) != 0)    //Change the current working directory to where we can find the applications files
-	{
-		fprintf(stderr,"Invalid or protected file path retrieved as Data File Path: %s\n", g_DataFilePath);
-		return 1;
-	}
-	return 0;
+	if(g_ProgramPath)
+    {
+        if(chdir(g_ProgramPath) == 0)    //Change the current working directory to where we can find the applications files
+        {
+            return 0;
+        }
+    }
+
+    fprintf(stderr,"Invalid or protected file path retrieved as Program File Path: %s\n", g_DataFilePath);
+    return 1;
 }
+
+void iniFilePaths(void)
+{
+    	//set defaults
+    g_ProgramPath = SDL_GetBasePath();
+    setProgramFilePath();                   //need to explicitly set the path for some env such as windows
+	strncpy(g_DataFilePath,g_ProgramPath,sizeof(g_DataFilePath));            //default th data path
+}
+
 
 /*********************************************
  *
