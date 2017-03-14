@@ -24,7 +24,7 @@
 // Font constants
 //x,y,w,h
 #ifdef linux
-    #define TTF_VERT_OFFSET
+    #define TTF_VERT_OFFSET 0
 #endif // linux
 #ifdef WIN32
     #define TTF_VERT_OFFSET -11          //windows seems to offset the font downwards by a few pixels
