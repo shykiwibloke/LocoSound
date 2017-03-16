@@ -17,9 +17,16 @@ config_t m_config[] =
 		{"LOCO_NAME","DFT7361" },
 		{"BAUD_RATE","9600" },
 		{"SERIAL_DEVICE","/dev/ttyAMA0" },
-		{"VOLUME_MAX", "128" },
-		{"VOLUME_HALF", "64" },
-		{"VOLUME_BACKGROUND", "100" },
+		{"VOL_ENGINE_LEFT","127"},
+        {"VOL_ENGINE_RIGHT","127"},
+        {"VOL_DYNAMIC_LEFT","127"},
+        {"VOL_DYNAMIC_RIGHT","127"},
+        {"VOL_AIRCOMPRESSOR_LEFT","127"},
+        {"VOL_AIRCOMPRESSOR_RIGHT","127"},
+        {"VOL_TRACTION_LEFT","127"},
+        {"VOL_TRACTION_RIGHT","127"},
+        {"VOL_HORN_LEFT","127"},
+        {"VOL_HORN_RIGHT","127"},
 		{"REV_UP_IDLE", "0" },
 		{"REV_UP_NOTCH1", "200000" },
 		{"REV_UP_NOTCH2", "385000" },
@@ -46,7 +53,7 @@ config_t m_config[] =
 
 	};
 
-const int m_CONFIG_SIZE = 31;           //alter this if you add any more config lines above
+const int m_CONFIG_SIZE = 39;           //alter this if you add any more config lines above
 
 int loadConfig()
 {

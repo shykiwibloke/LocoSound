@@ -34,9 +34,6 @@
 #define  LC_MAX_CHANNELS		8
 #define  LC_PLAY_ONCE			0
 #define  LC_PLAY_LOOP			-1
-//#define  LC_VOLUME_MAX			128
-//#define  LC_VOLUME_HALF			64
-//#define  LC_VOLUME_NONE			0
 /*******************************************
  *  Sound Module Specific File Name Declarations
  *  NB: The Order and number of these must match
@@ -107,6 +104,8 @@ typedef struct {
 	int			    currentItem;						//gets incremented until it points to a track that repeats or is a SF_NONE
 	Uint32			currentFadeStart;					//ByteCount to start fading out
 	Uint32			currentPlayEnd;						//BytesCount to stop playing
+	Uint8           volLeft;                            //Left stereo channel volume
+	Uint8           volRight;                           //Right stereo channel volume
 
 	Mix_Chunk		*soundChunk[LC_SOUND_QUEUE_MAX];	    //Holds pointers to memory for current sound
 	char            S_tag[LC_SOUND_QUEUE_MAX];
@@ -146,13 +145,12 @@ void changeThrottle(void);
 void changeDynamic(void);
 void changeHorn(void);
 void changeCompressor(void);
-void queueSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 fadeIn, Uint32 fadeOut, int loopCount, Uint8 volume );
+void queueSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 fadeIn, Uint32 fadeOut, int loopCount);
 void queuePartSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 startPos, Uint32 endPos, Uint32 fadeIn, Uint32 fadeOut, int loopCount );
 void showChannelSummary(void);
 void clearAllQueues(void);
 void clearQueue(LC_SoundQueue_t *pQ);
 void playQueueItem(LC_SoundQueue_t *pQ);
 void stopQueue(LC_SoundQueue_t *pQ, Uint32 fadeOut);
-void handleSoundCallback(int channel);
 
 #endif

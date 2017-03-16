@@ -84,6 +84,8 @@ int initScreen()
 	else
     {
 
+        //SDL_SetWindowFullscreen(m_window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+
 		//Create renderer for window
 		m_renderer = SDL_CreateRenderer( m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE );
 		if( m_renderer == NULL )
