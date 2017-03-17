@@ -350,7 +350,6 @@ void playQueueItem(LC_SoundQueue_t *pQ)
  	//Play first queue sound on next available channel
 	pQ->channel = Mix_FadeInChannel(-1, pQ->soundChunk[pQ->currentItem],pQ->loopCount[pQ->currentItem], pQ->fadeInTime[pQ->currentItem]);
 
-	//todo - set the overall volume of the channel properly here (see hack on load of revdown in InitAudio)
 
 	if (pQ->channel == -1)
 	{
@@ -359,6 +358,9 @@ void playQueueItem(LC_SoundQueue_t *pQ)
 	}
 	else
 	{
+        //Set the overall volume of the channel properly here according to user config settings
+        Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
+
 		pQ->IsPlaying = true;
 		fprintf(stderr,"Queue %c Sound %d assigned channel %d and playing OK \n",pQ->Q_tag,pQ->currentItem, pQ->channel);
 
@@ -529,6 +531,7 @@ void clearQueue(LC_SoundQueue_t *pQ)
 	pQ->currentItem = 0;
 	pQ->currentFadeStart = 0;
 	pQ->currentPlayEnd = 0;
+	//NB: dont touch the volume variables - leave them as-is
 
 	for(f = 0;f< LC_SOUND_QUEUE_MAX;f++)  //clear the queue
 	{
@@ -589,7 +592,6 @@ int initAudio(void)
 	LC_LOADWAV(F_NOTCH8,SF_NOTCH8);
 	LC_LOADWAV(F_REVUP,SF_REVUP);
 	LC_LOADWAV(F_REVDOWN, SF_REVDOWN);
-	m_SoundSamples[SF_REVDOWN]->volume = 0x40;		//half volume Hack - see notes in playQueueItem()
 	LC_LOADWAV(F_HORN, SF_HORN);
 	LC_LOADWAV(F_HORN_ST, SF_HORN_ST);
 	LC_LOADWAV(F_HORN_END, SF_HORN_END);

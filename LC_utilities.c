@@ -15,6 +15,7 @@
  *********************************************/
 int setDataFilePath(void)
 {
+
 	if(chdir(g_DataFilePath) != 0)    //Change the current working directory to where we can find the sound samples
 	{
 		fprintf(stderr,"Invalid or protected file path specified with '-p' option: '%s', %s\n", g_DataFilePath, SDL_GetError());
@@ -41,12 +42,19 @@ int setProgramFilePath(void)
     return 1;
 }
 
+
+/*********************************************
+ *
+ * initialize file paths
+ *
+ *********************************************/
+
 void iniFilePaths(void)
 {
     	//set defaults
     g_ProgramPath = SDL_GetBasePath();
     setProgramFilePath();                   //need to explicitly set the path for some env such as windows
-	strncpy(g_DataFilePath,g_ProgramPath,sizeof(g_DataFilePath));            //default th data path
+	strncpy(g_DataFilePath,g_ProgramPath,sizeof(g_DataFilePath));            //default the data path
 }
 
 
