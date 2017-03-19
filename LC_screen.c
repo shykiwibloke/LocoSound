@@ -24,11 +24,13 @@ void screenService(void)
 
 		if(m_renderer)
 		{
+            SDL_SetRenderDrawColor( m_renderer, 0x0, 0x0, 0x0, 0x0 );
 			SDL_RenderClear(m_renderer);
 
             // render background, NULL for source and destination rectangles just means "use the default"
             SDL_RenderCopy(m_renderer, m_background, NULL, NULL);
 
+            updateMessageWindow();
 			updateThrottle();
 			updateDynamic();
 			updateReverser();
@@ -84,9 +86,13 @@ int initScreen()
 	else
     {
 
-        //SDL_SetWindowFullscreen(m_window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+        //if window size requested is then set to fullscreen
+        fprintf(stderr,"THE VALUE IS: %s\n",getConfigStr("SCREEN_MAX"));
 
-		//Create renderer for window
+        if(strncmp(getConfigStr("SCREEN_MAX"),"YES",3) == 0)
+            SDL_SetWindowFullscreen(m_window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+  		//Create renderer for window
 		m_renderer = SDL_CreateRenderer( m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE );
 		if( m_renderer == NULL )
 		{
@@ -94,12 +100,17 @@ int initScreen()
 			return 1;
 		}
 
+        SDL_RenderSetLogicalSize(m_renderer, SCREEN_LOGICAL_W,SCREEN_LOGICAL_H);
+
 		//Initialize default renderer colour
-        SDL_SetRenderDrawColor( m_renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+        SDL_SetRenderDrawColor( m_renderer, 0x0, 0x0, 0x0, 0x0 );
 
 
 		//Now load the background image
 		m_background = loadTextureFromBMP(m_renderer, "BACKGROUND.BMP");
+
+
+		initMessageWindow();
 
 		//Load any buttons or other overlay images here
 		initButton(&m_startBtn,"START_BTN.BMP",180,340,150,150,"s");    //commands must be lower case!
@@ -129,10 +140,6 @@ int initScreen()
 		}
 
 
-		//todo - testing. move somewhere else
-        const SDL_Rect	Message_rect  = {486,406,500,12};	  //Rectangle for text messages
-		renderText("initializing - please wait", m_MsgFont, LC_LIGHTGRAY,Message_rect);
-
 		initMotorGraph();
 	}
 
@@ -157,6 +164,41 @@ void closeScreen(void)
 
 }
 
+
+/*****************************
+ *
+ * Create window where system messages can be displayed
+ *
+ *****************************/
+void initMessageWindow(void)
+{
+
+    m_msgArea.x = MSG_RECT_X;
+    m_msgArea.y = MSG_RECT_Y;
+    m_msgArea.w = MSG_RECT_W;
+    m_msgArea.h = MSG_RECT_H;
+
+    memset(m_msgBuf, 0, sizeof m_msgBuf);
+
+    strcpy(&m_msgBuf[0][0],"123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789");
+    m_msgBuf[1][0] = '2';
+    m_msgBuf[2][0] = '3';
+    m_msgBuf[3][0] = '4';
+    m_msgBuf[4][0] = '5';
+    m_msgBuf[5][0] = '6';
+    m_msgBuf[6][0]= '7';
+    m_msgBuf[7][0] = '8';
+    m_msgBuf[8][0] = '9';
+    m_msgBuf[9][0] = '0';
+    m_msgBuf[10][0] = '1';
+    m_msgBuf[11][0] = '2';
+    m_msgBuf[12][0] = '3';
+    m_msgBuf[13][0] = '4';
+    m_msgBuf[14][0] = '5';
+    m_msgBuf[15][0] = '6';
+
+}
+
 /*****************************
  *
  * Create Motor Graph - a collection of graph objects
@@ -170,12 +212,12 @@ void initMotorGraph(void)
     if(m_maxAmps < 1) m_maxAmps = 1;        //just in case some wally sets the value wrong and causes a divide by zero!!
     m_onePercentAmps = (float) (m_maxAmps / 100);
 
-	initBarGraph(&m_MotorGraph[0], 80 ,270,280,30,1,LC_ALMOND,LC_GREEN);
-	initBarGraph(&m_MotorGraph[1], 142,270,280,30,1,LC_ALMOND,LC_GREEN);
-	initBarGraph(&m_MotorGraph[2], 200,270,280,30,1,LC_ALMOND,LC_GREEN);
-	initBarGraph(&m_MotorGraph[3], 258,270,280,30,1,LC_ALMOND,LC_GREEN);
-	initBarGraph(&m_MotorGraph[4], 320,270,280,30,1,LC_ALMOND,LC_GREEN);
-	initBarGraph(&m_MotorGraph[5], 382,270,280,30,1,LC_ALMOND,LC_GREEN);
+	initBarGraph(&m_MotorGraph[0], 80 ,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_MotorGraph[1], 142,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_MotorGraph[2], 200,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_MotorGraph[3], 258,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_MotorGraph[4], 320,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_MotorGraph[5], 382,270,280,30,1,LC_ALMOND,LC_DARK_GREEN);
 
 }
 
@@ -218,6 +260,33 @@ void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int widt
 
 /*****************************
  *
+ * Update system messages display
+ *
+ *****************************/
+void updateMessageWindow(void)
+{
+    int f = 0;
+    SDL_Rect thisline;
+
+    thisline.x = m_msgArea.x + 5;
+    thisline.y = m_msgArea.y;
+    thisline.w = m_msgArea.w;
+    thisline.h = MSG_RECT_LINE_HEIGHT;
+
+    renderSquare(&m_msgArea,LC_WHITE,LC_DARK_GREEN);
+
+    for(f=0;f<16;f++)
+    {
+        if(m_msgBuf[f][0] != 0)
+            renderText(&m_msgBuf[f][0],m_MsgFont,LC_LIGHT_GREEN,thisline);
+       thisline.y+=MSG_RECT_LINE_HEIGHT;
+    }
+
+
+}
+
+/*****************************
+ *
  *  UpdateMotorGraphSet
  *
  *****************************/
@@ -231,7 +300,7 @@ void updateMotorGraphSet(void)
     for(f=0; f<6; f++)
 	{
         if(g_LC_ControlState.motorAmps[f] < 0)
-            updateBarGraph(&m_MotorGraph[f], g_LC_ControlState.motorAmps[f],LC_GREEN);
+            updateBarGraph(&m_MotorGraph[f], g_LC_ControlState.motorAmps[f],LC_LIGHT_GREEN);
         else
             updateBarGraph(&m_MotorGraph[f], g_LC_ControlState.motorAmps[f],LC_RED);
 	}
@@ -354,7 +423,7 @@ void updateReverser(void)
 	}
 	else if(!g_LC_ControlState.DirForward && !g_LC_ControlState.DirReverse)
 	{
-		renderText("NEUTRAL", m_BigFont, LC_GREEN,Dynamic_rect);
+		renderText("NEUTRAL", m_BigFont, LC_DARK_GREEN,Dynamic_rect);
 	}
 }
 
@@ -437,4 +506,12 @@ void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Re
 
 }
 
+void renderSquare(const SDL_Rect* coords, const SDL_Color lineColour, const SDL_Color fillColour)
+{
+    SDL_SetRenderDrawColor(m_renderer,fillColour.r,fillColour.g,fillColour.b,fillColour.a);
+    SDL_RenderFillRect(m_renderer,coords);
+    SDL_SetRenderDrawColor(m_renderer,lineColour.r,lineColour.g,lineColour.b,lineColour.a);
+    SDL_RenderDrawRect(m_renderer,coords);
+
+}
 

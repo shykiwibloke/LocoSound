@@ -13,6 +13,7 @@ config_t m_config[] =
 	{
 		{"SCREEN_WIDTH", "1024" },
 		{"SCREEN_HEIGHT", "600" },
+		{"SCREEN_MAX","NO"},
 		{"FONT_FILE","FreeSans.ttf" },
 		{"LOCO_NAME","DFT7361" },
 		{"BAUD_RATE","9600" },
