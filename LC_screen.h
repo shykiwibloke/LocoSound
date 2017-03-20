@@ -102,7 +102,9 @@ SDL_Window*				m_window;           //Pointer to the SDL window
 SDL_Renderer*			m_renderer;			//main screen renderer used by all graphics objects
 SDL_Texture*			m_background;		//background graphics for the main screen
 SDL_Rect                m_msgArea;           //the rectangle used to display messages
-LC_MsgLine_t            m_msgBuf[MSG_RECT_LINES*2];   //buffer is twice the size of displayable lines
+LC_MsgLine_t            m_msgBuf[MSG_RECT_LINES];   //buffer is the size of displayable lines
+LC_MsgLine_t            m_msgTempLine;      //A temporary buffer for assembling a message line with variables
+int                     m_msgPtr;           //Pointer used in update and display refresh operations
 LC_Button_t			    m_startBtn;			//graphic for the engine start button & related variables
 TTF_Font*				m_MsgFont;		    //The font we use for all status messages
 TTF_Font*				m_BigFont;			//Large font for throttle setting etc
@@ -131,8 +133,11 @@ void updateReverser(void);
 void updateSpeedo(void);
 void updateBattery(void);
 void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect);
-SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer,const char* fileName);
 void renderSquare(const SDL_Rect* coords, const SDL_Color lineColour, const SDL_Color fillColour);
+void addMessageLine(const char* msgline);
+void clearMessageWindow(void);
+SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer,const char* fileName);
+
 
 
 #endif /* defined(__LocoControl__LC_screen__) */

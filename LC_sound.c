@@ -560,9 +560,9 @@ void clearQueue(LC_SoundQueue_t *pQ)
 int initAudio(void)
 {
 
-    #ifdef windows
+    #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
-    #endif // windows
+    #endif // _WIN32
     if(Mix_OpenAudio(LC_SOUND_SAMPLE_RATE, LC_SOUND_FORMAT, LC_NUM_CHANNELS, LC_CHUNK_SIZE))
 	{
         fprintf(stderr,"Unable to initialize SDL mixer: %s\n",SDL_GetError());

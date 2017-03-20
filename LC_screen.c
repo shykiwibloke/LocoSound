@@ -87,8 +87,6 @@ int initScreen()
     {
 
         //if window size requested is then set to fullscreen
-        fprintf(stderr,"THE VALUE IS: %s\n",getConfigStr("SCREEN_MAX"));
-
         if(strncmp(getConfigStr("SCREEN_MAX"),"YES",3) == 0)
             SDL_SetWindowFullscreen(m_window,SDL_WINDOW_FULLSCREEN_DESKTOP);
 
@@ -172,30 +170,14 @@ void closeScreen(void)
  *****************************/
 void initMessageWindow(void)
 {
-
-    m_msgArea.x = MSG_RECT_X;
+    m_msgArea.x = MSG_RECT_X;   //reset the drawing pointers
     m_msgArea.y = MSG_RECT_Y;
     m_msgArea.w = MSG_RECT_W;
     m_msgArea.h = MSG_RECT_H;
 
-    memset(m_msgBuf, 0, sizeof m_msgBuf);
+   // clearMessageWindow();          //clear the array
 
-    strcpy(&m_msgBuf[0][0],"123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789");
-    m_msgBuf[1][0] = '2';
-    m_msgBuf[2][0] = '3';
-    m_msgBuf[3][0] = '4';
-    m_msgBuf[4][0] = '5';
-    m_msgBuf[5][0] = '6';
-    m_msgBuf[6][0]= '7';
-    m_msgBuf[7][0] = '8';
-    m_msgBuf[8][0] = '9';
-    m_msgBuf[9][0] = '0';
-    m_msgBuf[10][0] = '1';
-    m_msgBuf[11][0] = '2';
-    m_msgBuf[12][0] = '3';
-    m_msgBuf[13][0] = '4';
-    m_msgBuf[14][0] = '5';
-    m_msgBuf[15][0] = '6';
+    //actual drawing of the window is done in the update code
 
 }
 
@@ -266,6 +248,7 @@ void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int widt
 void updateMessageWindow(void)
 {
     int f = 0;
+    int ptr = m_msgPtr;     //get a local copy
     SDL_Rect thisline;
 
     thisline.x = m_msgArea.x + 5;
@@ -274,17 +257,47 @@ void updateMessageWindow(void)
     thisline.h = MSG_RECT_LINE_HEIGHT;
 
     renderSquare(&m_msgArea,LC_WHITE,LC_DARK_GREEN);
-
-    for(f=0;f<16;f++)
+    for(f=0;f<MSG_RECT_LINES;f++)
     {
-        if(m_msgBuf[f][0] != 0)
-            renderText(&m_msgBuf[f][0],m_MsgFont,LC_LIGHT_GREEN,thisline);
-       thisline.y+=MSG_RECT_LINE_HEIGHT;
+        if(m_msgBuf[ptr][0] != 0)
+        {
+            renderText(m_msgBuf[ptr],m_MsgFont,LC_LIGHT_GREEN,thisline);
+            thisline.y+=MSG_RECT_LINE_HEIGHT;
+        }
+
+        if(++ptr>=MSG_RECT_LINES)
+            ptr = 0;               //treat as circular buffer
     }
 
 
 }
 
+/*****************************
+ *
+ *  Add a line of text to the message area
+ *
+ *****************************/
+void addMessageLine(const char* msgline)
+{
+    strncpy(m_msgBuf[m_msgPtr++],msgline,MSG_RECT_LINE_LENGTH-1);
+    if(m_msgPtr>=MSG_RECT_LINES)
+        m_msgPtr = 0;               //buffer is treated as circular, so go around again
+
+}
+
+/*****************************
+ *
+ *  clear the message area
+ *
+ *****************************/
+void clearMessageWindow(void)
+{
+    //resets all to initial values
+    memset(m_msgBuf, 0, sizeof m_msgBuf);    //clear the contents of the buffer
+
+    m_msgPtr = 0;
+
+}
 /*****************************
  *
  *  UpdateMotorGraphSet

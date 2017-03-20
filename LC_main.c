@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 	initGlobals();					//Init the applications global variables
 	initModules();						//Init the SDL systems we rely on for machine portability
 
+	addMessageLine("Initialization complete. Press 'h' for a list of keyboard commands");
 	//Main Loop
 	while(!quit) {
 
@@ -60,7 +61,7 @@ int main(int argc, char *argv[]) {
         int		len = 0;
         char	cmd_str[CMD_MAX_MSG_LEN];
 
-        len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
+        len = readSerial(cmd_staddMessageLiner,CMD_MAX_MSG_LEN); //Service Serial Port
 		if(len > 0)
 		{
 			actionCommand(cmd_str,len);
@@ -105,7 +106,7 @@ int handleKey(SDL_KeyboardEvent key) {
 		case SDLK_8:
 			if (g_LC_ControlState.ThrottlePos < 0)
 			{
-				fprintf(stderr,"Start the Engine first!");
+				fprintf(stderr,"Start the Engine first!\n");
 				break;
 			}
 			if (g_LC_ControlState.ThrottleActive) {
@@ -119,7 +120,7 @@ int handleKey(SDL_KeyboardEvent key) {
 			}
 			break;
 		case SDLK_c:
- 			fprintf(stderr, "clearing sound queues\n");
+ 			fprintf(stderr, "Clearing sound queues\n");
             clearAllQueues();               //resets the sound
             break;
 		case SDLK_d:
@@ -170,7 +171,7 @@ int handleKey(SDL_KeyboardEvent key) {
 			g_LC_ControlState.ThrottleActive = true;		//make throttle active and trigger start
 			g_LC_ControlState.DynBrakeActive = false;
 			g_LC_ControlState.ThrottlePos = 0;
-			fprintf(stderr, "Starting...\n");
+			fprintf(stderr, "Starting Prime Mover...\n");
 			break;
 
 		case SDLK_t:
@@ -184,7 +185,7 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 
 		case SDLK_q:  //quit application
-		    fprintf(stderr,"Quitting Application at user request");
+		    fprintf(stderr,"Quitting Application at user request\n");
 			rtn = 1;
             break;
 
@@ -262,7 +263,7 @@ void actionCommand(char *str, int len)
             }
 			break;
 		default:
-			fprintf(stderr, "Unrecognised command string: %s", str);
+			fprintf(stderr, "Unrecognised command string: %s \n", str);
 			break;
 	}
 
@@ -310,11 +311,13 @@ void initGlobals()
  *********************************************/
 int initModules()
 {
-    fprintf(stderr,"Compiled against SDL version %d.%d.%d\n",SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL );
+    addMessageLine("Winter Creek Loco Sound (c) 2017 Initializing.....");
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Compiled against SDL version %d.%d.%d",SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL );
+    addMessageLine(m_msgTempLine);
 
-    #ifdef windows
+    #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
-    #endif // windows
+    #endif // _WIN32
 
 	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
@@ -324,7 +327,9 @@ int initModules()
 
     SDL_version linked;
     SDL_GetVersion(&linked);
-    fprintf(stderr,"Successfully Opened with SDL version %d.%d.%d\n",linked.major, linked.minor, linked.patch);
+
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Successfully Opened with SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
+    addMessageLine(m_msgTempLine);
 
 	atexit(closeProgram);  //setup the closedown callback
 
@@ -334,18 +339,28 @@ int initModules()
 		fprintf(stderr, "Initalising Screen failed, program terminated\n");
 		exit(1);    //error setting up
 	}
-
+    addMessageLine("Screen & Fonts Initialized....OK");
 	if(initAudio() != 0)
 	{
 		fprintf(stderr, "Initalising Audio failed, program terminated\n");
 		exit(1);    //error setting up
 	}
+
+    addMessageLine("Audio Generator & Mixer Initialized....OK");
+
+
 #ifdef linux
 	if (initSerial() != 0)    //not strictly SDL but safe place to put it
 	{
 		fprintf(stderr,"Warning: Error initializing comms to Loco Control Stand. Keyboard Control Only Mode\n");
 	}
+    addMessageLine("Comms Initialized....OK");
+
 #endif
+#ifdef _WIN32
+        addMessageLine("Comms currently disabled for windows version");
+#endif // _WIN32
+
 	return 0; //success
 
 }
