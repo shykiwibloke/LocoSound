@@ -19,6 +19,7 @@
 #include <SDL2/SDL_mixer.h>
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 #include "LC_configReader.h"
+#include "LC_screen.h"
 
 /*********************************************
 *
@@ -98,7 +99,7 @@ typedef enum {
 
 //sound queue structure definition
 typedef struct {
-	char            Q_tag;
+	char            *Qlabel;                             //points to a description of the owner of this queue
 	int				channel;							//The mixer channel we are using
 	bool			IsPlaying;							//True if this queue is currently being played. False when finished.
 	int			    currentItem;						//gets incremented until it points to a track that repeats or is a SF_NONE
@@ -108,7 +109,6 @@ typedef struct {
 	Uint8           volRight;                           //Right stereo channel volume
 
 	Mix_Chunk		*soundChunk[LC_SOUND_QUEUE_MAX];	    //Holds pointers to memory for current sound
-	char            S_tag[LC_SOUND_QUEUE_MAX];
 	int				fadeInTime[LC_SOUND_QUEUE_MAX];	    //Length of fade in. 0 for none
 	int 			fadeOutTime[LC_SOUND_QUEUE_MAX];	//Length of fade out. 0 for none
 	int				loopCount[LC_SOUND_QUEUE_MAX];		//number of times to repeat. -1 = infinite,0 = 1, 1 = 2 etc

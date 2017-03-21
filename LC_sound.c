@@ -14,8 +14,13 @@
 *
 *********************************************/
 
-// LC_Sounds holds information about the memory copies of all sound samples
-// Individual Sounds can be indexed using the enumeration LC_SoundFile_t
+char  Q_LABEL_E[] = "Engine Queue";
+char  Q_LABEL_D[] = "Dynamic Queue";
+char  Q_LABEL_H[] = "Horn Queue";
+char  Q_LABEL_A[] = "AirComp Queue";
+char  Q_LABEL_T[] = "Traction Queue";
+char  Q_LABEL_U[] = "Just closing - or is really an ORPHAN! Check again or find that Bug!";
+
 
 Mix_Chunk		 *m_SoundSamples[SF_MAX_ITEMS];			//Holds all the sound samples and related information in memory for fast access
 LC_SoundQueue_t  m_EngineQueue;							//Used to contain each string of samples to be played
@@ -39,7 +44,7 @@ int				 m_fadeLong = 10000;
 /*********************************************
 *
 * soundService is the main service routine
-*
+*addMessageLine("");
 *********************************************/
 void soundService()
 {
@@ -104,14 +109,14 @@ void changeThrottle(void)
 		if (m_SndThrottlePos <= -1)   //special case - startup sequence requested
 		{
 			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE);
+			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE);    //todo - dont set 'idle' until passed this point
 			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP);
 
 		}
 		else   //General Acceleration handling
 		{
 			//Queue appropriate rev-up sequence as well as new throttle setting.
-			fprintf(stderr,"_____\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
+			fprintf(stderr,"_____addMessageLine("");\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
 			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
@@ -240,7 +245,7 @@ void changeCompressor(void)
     int value = 2 + rand() % 6;            //2 - 7 mins range seed
     static Uint32 torun = 60000;
 
-    if SDL_TICKS_PASSED(SDL_GetTicks(),torun)
+    if SDL_TICKS_PASSED(SDL_GetTicks(),torun)    //TODO - dont allow to play while revving down
     {
         //start the air compressor sound
         fprintf(stderr,"Compressor triggered with random value of %d", value);
@@ -334,7 +339,7 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 void playQueueItem(LC_SoundQueue_t *pQ)
 {
 
-   fprintf(stderr,"Starting to play Queue %c sound %d\n",pQ->Q_tag,pQ->currentItem);
+   fprintf(stderr,"Starting to play %s sound %d\n",pQ->Qlabel,pQ->currentItem);
 
 	//set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
 	if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
@@ -354,7 +359,7 @@ void playQueueItem(LC_SoundQueue_t *pQ)
 	if (pQ->channel == -1)
 	{
 		pQ->IsPlaying = false;
-		fprintf(stderr,"Error playing sound %d for channel %d for Queue %c\n",pQ->currentItem, pQ->channel,pQ->Q_tag);
+		fprintf(stderr,"Error playing sound %d on channel %d for %s\n",pQ->currentItem, pQ->channel,pQ->Qlabel);
 	}
 	else
 	{
@@ -362,7 +367,7 @@ void playQueueItem(LC_SoundQueue_t *pQ)
         Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
 
 		pQ->IsPlaying = true;
-		fprintf(stderr,"Queue %c Sound %d assigned channel %d and playing OK \n",pQ->Q_tag,pQ->currentItem, pQ->channel);
+		fprintf(stderr,"%s sound %d assigned channel %d and playing OK \n",pQ->Qlabel,pQ->currentItem, pQ->channel);
 
 	}
 
@@ -382,7 +387,7 @@ void fadeOutQueue(LC_SoundQueue_t *pQ,Uint32 fadeOut)
 	pQ->loopCount[pQ->currentItem] = 0;
 	pQ->soundChunk[(pQ->currentItem)+1] = NULL;
 
-	fprintf(stderr,"Stopping Queue %c with sound playing on channel %d, index %d for %d ms\n",pQ->Q_tag, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);
+	fprintf(stderr,"Stopping %s sound on channel %d, index %d for %d ms\n",pQ->Qlabel, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);
 	serviceChannel(pQ);
 }
 
@@ -410,7 +415,7 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 
 			if ( !Mix_Playing(pQ->channel)) //check end b4 fade
 			{
-				fprintf(stderr,"Queue %c chan %d confirmed expired\n",pQ->Q_tag,pQ->channel);
+				fprintf(stderr,"%s chan %d confirmed expired\n",pQ->Qlabel,pQ->channel);
 
 			}
 			finishPlayingSound(pQ);
@@ -419,7 +424,7 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound got to the point of fading out?
 		else if (SDL_TICKS_PASSED(currentTime, pQ->currentFadeStart))
 		{
-			fprintf(stderr,"Fading out queue %c channel %d, index %d for %d ms\n", pQ->Q_tag, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);//IF the next sound is zero length AND we are not going to be at the end of the queue
+			fprintf(stderr,"Fading out %s channel %d, index %d for %d ms\n", pQ->Qlabel, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);//IF the next sound is zero length AND we are not going to be at the end of the queue
 			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]+1);
 			finishPlayingSound(pQ);
 		}
@@ -461,19 +466,38 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 void showChannelSummary(void)
 {
 
-    int f = 0;
+    int     f = 0;
+    char    *ptr = NULL;
 
-    fprintf(stderr,"\n_______________\n\n");    //signal start of new set of commands
-    fprintf(stderr, "Chan Update\n\n");
+    addMessageLine("_______________");    //signal start of new set of commands
+    addMessageLine("Chan Update");
 
 
     for(f=0; f<LC_MAX_CHANNELS;f++)
     {
         if(Mix_Playing(f))
         {
-            fprintf(stderr,"%d channel is playing\n", f);
-        } else {
-            fprintf(stderr,"%d channel is free\n", f);
+            if(m_EngineQueue.channel == f)
+                ptr = Q_LABEL_E;
+            else if(m_DynBrakeQueue.channel == f)
+                ptr = Q_LABEL_D;
+            else if(m_HornQueue.channel == f)
+                ptr = Q_LABEL_H;
+            else if(m_AirCompQueue.channel == f)
+                ptr = Q_LABEL_A;
+            else if(m_TractionQueue.channel == f)
+                ptr = Q_LABEL_T;
+            else
+                ptr = Q_LABEL_U;              //Unkown or Orphan
+
+            snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"%d channel is playing for %s", f, ptr);
+            addMessageLine(m_msgTempLine);
+
+        }
+        else  //if NOT Mix_playing
+        {
+            snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"%d channel is free", f);
+            addMessageLine(m_msgTempLine);
         }
      }
 }
@@ -493,23 +517,23 @@ void showChannelSummary(void)
     }
 
     //Ensure the queues are in their default state
-	m_EngineQueue.Q_tag = 'E';				//Engine Q. (tags are only there to make debugging output easier to read)
+	m_EngineQueue.Qlabel = Q_LABEL_E;				//Engine Q. (tags are only there to make debugging output easier to read)
 	m_EngineQueue.volLeft = getConfigVal("VOL_ENGINE_LEFT");
 	m_EngineQueue.volRight = getConfigVal("VOL_ENGINE_RIGHT");
 	clearQueue(&m_EngineQueue);
-	m_AirCompQueue.Q_tag = 'A';				//Air Comp Q
+	m_AirCompQueue.Qlabel = Q_LABEL_A;				//Air Comp Q
 	m_AirCompQueue.volLeft = getConfigVal("VOL_AIRCOMPRESSOR_LEFT");
     m_AirCompQueue.volRight = getConfigVal("VOL_AIRCOMPRESSOR_RIGHT");
 	clearQueue(&m_AirCompQueue);
-	m_DynBrakeQueue.Q_tag = 'D';			//Dynamic Fans
+	m_DynBrakeQueue.Qlabel = Q_LABEL_D;			//Dynamic Fans
 	m_DynBrakeQueue.volLeft = getConfigVal("VOL_DYNAMIC_LEFT");
     m_DynBrakeQueue.volRight = getConfigVal("VOL_DYNAMIC_RIGHT");
 	clearQueue(&m_DynBrakeQueue);
-	m_HornQueue.Q_tag = 'H';				//Horn Q
+	m_HornQueue.Qlabel = Q_LABEL_H;				//Horn Q
 	m_HornQueue.volLeft = getConfigVal("VOL_HORN_LEFT");
     m_HornQueue.volRight = getConfigVal("VOL_HORN_RIGHT");
 	clearQueue(&m_HornQueue);
-	m_TractionQueue.Q_tag = 'T';			//Traction Blowers
+	m_TractionQueue.Qlabel = Q_LABEL_T;			//Traction Blowers
 	m_TractionQueue.volLeft = getConfigVal("VOL_TRACTION_LEFT");
     m_TractionQueue.volRight = getConfigVal("VOL_TRACTION_RIGHT");
 	clearQueue(&m_TractionQueue);
@@ -543,7 +567,7 @@ void clearQueue(LC_SoundQueue_t *pQ)
 	}
 	if (Mix_Playing(pQ->channel))
 	{
-		fprintf(stderr,"Queue %c with sound currently playing on channel %d cleared\n",pQ->Q_tag,pQ->channel);
+		fprintf(stderr,"%s channel %d cleared\n",pQ->Qlabel,pQ->channel);
  		pQ->channel = -1;         //set so next sound will be allocated a fresh mix channel
 
 	}

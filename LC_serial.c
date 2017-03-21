@@ -85,8 +85,6 @@ int initSerial()
 	tcflush(m_serialhandle, TCIFLUSH);
 	tcsetattr(m_serialhandle, TCSANOW, &options);
 
-	//TODO - get BAUD RATE FROM CONFIG!
-
 	//clear RTS
 	ioctl(m_serialhandle, TIOCMBIC, &mcs);
 

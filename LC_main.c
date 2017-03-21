@@ -28,7 +28,12 @@ int main(int argc, char *argv[]) {
 	initGlobals();					//Init the applications global variables
 	initModules();						//Init the SDL systems we rely on for machine portability
 
-	addMessageLine("Initialization complete. Press 'h' for a list of keyboard commands");
+	if(g_Debug)
+        addMessageLine("Debug option set by command line");
+
+	//all ready to begin the main loop
+
+	addMessageLine("Initialization complete. Press 'F1' for a list of keyboard commands");
 	//Main Loop
 	while(!quit) {
 
@@ -72,8 +77,7 @@ int main(int argc, char *argv[]) {
 		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
 		{
 			screenService();
-			lastrun = SDL_GetTicks()+1000;
-
+			lastrun = SDL_GetTicks()+250;
 		}
 
 	}  //End of Main Loop
@@ -106,7 +110,7 @@ int handleKey(SDL_KeyboardEvent key) {
 		case SDLK_8:
 			if (g_LC_ControlState.ThrottlePos < 0)
 			{
-				fprintf(stderr,"Start the Engine first!\n");
+				addMessageLine("Start the Engine first!");
 				break;
 			}
 			if (g_LC_ControlState.ThrottleActive) {
@@ -116,17 +120,17 @@ int handleKey(SDL_KeyboardEvent key) {
 				g_LC_ControlState.DynBrakePos = (int)key.keysym.sym-48;
 				fprintf(stderr, "Setting Dynamic Brake to: %d\n",g_LC_ControlState.DynBrakePos);
 			} else {
-				fprintf(stderr, "Input Error: Cannot set notch as neither Throttle nor Dynamic Brake are set Active\n");
+				addMessageLine("Error: Cannot set notch. Throttle or Dynamic not set");
 			}
 			break;
 		case SDLK_c:
- 			fprintf(stderr, "Clearing sound queues\n");
+ 			addMessageLine("Clearing current sound queues");
             clearAllQueues();               //resets the sound
             break;
 		case SDLK_d:
 			g_LC_ControlState.DynBrakeActive = true;
 			g_LC_ControlState.ThrottleActive = false;
-			fprintf(stderr, "Dynamic Brake Active\n");
+			addMessageLine("Dynamic Brake Active");
 			break;
 		case SDLK_e:
 			g_LC_ControlState.Emergency = true;
@@ -143,7 +147,7 @@ int handleKey(SDL_KeyboardEvent key) {
 			if(!g_LC_ControlState.HornPressed)
 			{
 				g_LC_ControlState.HornPressed = true;    //horn press
-				fprintf(stderr, "Horn pressed\n");
+				addMessageLine("Horn pressed");
 			}
 			break;
 
@@ -151,7 +155,7 @@ int handleKey(SDL_KeyboardEvent key) {
             if(g_LC_ControlState.HornPressed)
 			{
 				g_LC_ControlState.HornPressed = false;    //horn depresss
-				fprintf(stderr, "Horn released\n");
+				addMessageLine("Horn released");
 			}
 			break;
 
@@ -171,13 +175,13 @@ int handleKey(SDL_KeyboardEvent key) {
 			g_LC_ControlState.ThrottleActive = true;		//make throttle active and trigger start
 			g_LC_ControlState.DynBrakeActive = false;
 			g_LC_ControlState.ThrottlePos = 0;
-			fprintf(stderr, "Starting Prime Mover...\n");
+			addMessageLine("Starting Prime Mover...");
 			break;
 
 		case SDLK_t:
 			g_LC_ControlState.ThrottleActive = true;
 			g_LC_ControlState.DynBrakeActive = false;
-			fprintf(stderr, "Trottle now active\n");
+			addMessageLine("Throttle Active");
 			break;
 
 		case SDLK_u:
@@ -189,6 +193,22 @@ int handleKey(SDL_KeyboardEvent key) {
 			rtn = 1;
             break;
 
+		case SDLK_F1:
+          //  snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"",);
+            addMessageLine(" ");
+            addMessageLine("Available Commands List: (all lower case)");
+            addMessageLine("-----------------------------------------");
+            addMessageLine("s = Start Engine (or use mouse to click the 'Engine Start' Button");
+            addMessageLine("t = Throttle mode");
+            addMessageLine("d = Dynamic mode");
+            addMessageLine("0-8 = Idle and notches 1 to 8. Sound changes for Throttle or Dynamic mode");
+            addMessageLine("h = start sounding the horn");
+            addMessageLine("j = stop sounding the horn");
+            addMessageLine("q = quit the application gracefully");
+            addMessageLine("u = update on sound queue activity to log - a debug command");
+            addMessageLine("c = cancel all currently playing sounds - debug command");
+            addMessageLine("-----------------------------------------");
+            break;
 		default:
 		    fprintf(stderr, "Unknown command '%c' received \n",key.keysym.sym);
 			break;
@@ -312,8 +332,6 @@ void initGlobals()
 int initModules()
 {
     addMessageLine("Winter Creek Loco Sound (c) 2017 Initializing.....");
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Compiled against SDL version %d.%d.%d",SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL );
-    addMessageLine(m_msgTempLine);
 
     #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
@@ -328,7 +346,7 @@ int initModules()
     SDL_version linked;
     SDL_GetVersion(&linked);
 
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Successfully Opened with SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL ver:%d.%d.%d",linked.major, linked.minor, linked.patch);
     addMessageLine(m_msgTempLine);
 
 	atexit(closeProgram);  //setup the closedown callback
@@ -405,7 +423,7 @@ void getCmdLineOptions(int argc, char * const argv[])
 				fprintf (stderr, "Data filepath set to %s.\n", g_DataFilePath);
 				break;
 			case 'h':
-				fprintf(stdout,"Usage: -d sets debug mode, -p <pathname> sets the path for the data files, -s wwww,hhhh sets screen width and height");
+				fprintf(stdout,"Usage: -d sets debug mode, -p <pathname> sets the path for the data files");
 				break;
 			case '?':
 				if (optopt == 'p')

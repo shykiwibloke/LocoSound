@@ -447,7 +447,7 @@ void updateReverser(void)
  *****************************/
 void updateSpeedo(void)
 {
-	//TODO
+	//TODO - speedo code
 }
 
 /*****************************
@@ -506,8 +506,6 @@ void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Re
 
     //now you can convert it into a texture
 	SDL_Texture* Message = SDL_CreateTextureFromSurface(m_renderer, surfaceMessage);
-
-	//TODO - have to put RenderCopy in your main loop area, the area where the whole code executes
 
 	Message_rect.w = surfaceMessage->w; // controls the width of the rect
 	Message_rect.h = surfaceMessage->h ; // controls the height of the rect
