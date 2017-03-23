@@ -19,7 +19,7 @@ char  Q_LABEL_D[] = "Dynamic Queue";
 char  Q_LABEL_H[] = "Horn Queue";
 char  Q_LABEL_A[] = "AirComp Queue";
 char  Q_LABEL_T[] = "Traction Queue";
-char  Q_LABEL_U[] = "Just closing - or is really an ORPHAN! Check again or find that Bug!";
+char  Q_LABEL_U[] = "Closing, or is an ORPHAN!";
 
 
 Mix_Chunk		 *m_SoundSamples[SF_MAX_ITEMS];			//Holds all the sound samples and related information in memory for fast access
@@ -65,11 +65,8 @@ void soundService()
 	{
 		changeHorn();
 	}
-	if (g_LC_ControlState.ThrottlePos == 0)     //if throttle idle (i.e. engine has started already)
+	if (g_LC_ControlState.ThrottlePos == 0 && g_LC_ControlState.DynBrakePos ==0)     //if throttle idle (i.e. engine has started already)
 	{
-		if(m_DynBrakeQueue.IsPlaying)
-            changeDynamic();                    //we are back to idle, and were in dynamic - go shut her down
-
 		changeCompressor();                     //compressor runs on random time
 	}
 
@@ -147,7 +144,6 @@ void changeThrottle(void)
 			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
 			{
 				fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
- 			    clearQueue(&m_TractionQueue);
 			}
 		}
 	}
@@ -188,17 +184,16 @@ void changeDynamic(void)
     //if currently > 5 and moving to less than 5 but not to zero
     else if  (g_LC_ControlState.DynBrakePos != 0 && m_SndDynBrakePos >= 5)		//traction sound should play when traction motors are working
     {
-        clearQueue(&m_TractionQueue);
-        queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP);
-        playQueueItem(&m_TractionQueue);
+        if (m_TractionQueue.IsPlaying)
+        {
+            fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        }
     }
     //if moving to zero
     else if  (g_LC_ControlState.DynBrakePos == 0)
     {
-        fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        fadeOutQueue(&m_DynBrakeQueue,m_fadeLong);  //force current sounds to fade out gradually
         fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
-        clearQueue(&m_TractionQueue);
-        clearQueue(&m_DynBrakeQueue);
     }
 
 	m_SndDynBrakePos = g_LC_ControlState.DynBrakePos;
@@ -470,22 +465,22 @@ void showChannelSummary(void)
     char    *ptr = NULL;
 
     addMessageLine("_______________");    //signal start of new set of commands
-    addMessageLine("Chan Update");
+    addMessageLine("Update on Mixer Channel Status");
 
 
     for(f=0; f<LC_MAX_CHANNELS;f++)
     {
         if(Mix_Playing(f))
         {
-            if(m_EngineQueue.channel == f)
+            if(m_EngineQueue.channel == f && m_EngineQueue.IsPlaying)
                 ptr = Q_LABEL_E;
-            else if(m_DynBrakeQueue.channel == f)
+            else if(m_DynBrakeQueue.channel == f && m_DynBrakeQueue.IsPlaying)
                 ptr = Q_LABEL_D;
-            else if(m_HornQueue.channel == f)
+            else if(m_HornQueue.channel == f && m_HornQueue.IsPlaying)
                 ptr = Q_LABEL_H;
-            else if(m_AirCompQueue.channel == f)
+            else if(m_AirCompQueue.channel == f && m_AirCompQueue.IsPlaying)
                 ptr = Q_LABEL_A;
-            else if(m_TractionQueue.channel == f)
+            else if(m_TractionQueue.channel == f && m_TractionQueue.IsPlaying)
                 ptr = Q_LABEL_T;
             else
                 ptr = Q_LABEL_U;              //Unkown or Orphan

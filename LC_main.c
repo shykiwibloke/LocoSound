@@ -253,6 +253,7 @@ void actionCommand(char *str, int len)
 	switch(cmd_class)
 	{
 		case 'L':			//Log message received - pass straight on to std err (which can be redirected)
+		    //TODO - examine log level and decide if should be logged based on g_Debug setting
 			fprintf(stderr,"Log: %c: %s\n",cmd_arg, cmd_msg);
 			break;
 
@@ -303,12 +304,12 @@ void initGlobals()
 	//Init control structure once we have our path variable and other initial directives.
 
 	g_LC_ControlState.vbat = 0;
-	g_LC_ControlState.motorAmps[0] = 0;
-	g_LC_ControlState.motorAmps[1] = 0;
-	g_LC_ControlState.motorAmps[2] = 0;
-	g_LC_ControlState.motorAmps[3] = 0;
-	g_LC_ControlState.motorAmps[4] = 0;
-	g_LC_ControlState.motorAmps[5] = 0;
+	g_LC_ControlState.motorAmps[0] = 1;
+	g_LC_ControlState.motorAmps[1] = 1;
+	g_LC_ControlState.motorAmps[2] = 1;
+	g_LC_ControlState.motorAmps[3] = 1;
+	g_LC_ControlState.motorAmps[4] = 1;
+	g_LC_ControlState.motorAmps[5] = 1;
 	g_LC_ControlState.ConsoleHealthy = false;
 	g_LC_ControlState.DirForward = false;
 	g_LC_ControlState.DirReverse = false;

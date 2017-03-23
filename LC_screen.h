@@ -27,13 +27,28 @@
     #define TTF_VERT_OFFSET 0
 #endif // linux
 #ifdef WIN32
-    #define TTF_VERT_OFFSET -11          //windows seems to offset the font downwards by a few pixels
+    #define TTF_VERT_OFFSET -11          //windows seems to offset the font downwards by a few pixels compared to Linux - compensate
 #endif // windows
 
 #define SCREEN_LOGICAL_W 1024           //used for internally laying out the screen
 #define SCREEN_LOGICAL_H 600            //irresepcetive of what the screen size really is
 
-#define MSG_RECT_X 465                  //Message rectangle coords in logical screen units
+#define MOTOR_AREA_X 40
+#define MOTOR_AREA_Y 230
+#define MOTOR_AREA_H 355
+#define MOTOR_AREA_W 404
+#define MOTOR_BAR0_X 75
+#define MOTOR_BAR1_X 135
+#define MOTOR_BAR2_X 195
+#define MOTOR_BAR3_X 255
+#define MOTOR_BAR4_X 315
+#define MOTOR_BAR5_X 375
+#define MOTOR_BAR_Y  270
+#define MOTOR_BAR_H  280
+#define MOTOR_BAR_W  30
+#define MOTOR_BAR_B  1
+
+#define MSG_RECT_X 463                  //Message rectangle coords in logical screen units
 #define MSG_RECT_Y 385
 #define MSG_RECT_W 540
 #define MSG_RECT_H 200
@@ -50,8 +65,8 @@
 #define REV_RECT_X 794                  //Reverser Control rectangle
 #define REV_RECT_Y 315 + TTF_VERT_OFFSET
 
-#define BAT_RECT_X 234                  //Battery voltage rectangle
-#define BAT_RECT_Y 173 + TTF_VERT_OFFSET
+#define BAT_RECT_X 236                  //Battery voltage rectangle
+#define BAT_RECT_Y 180 + TTF_VERT_OFFSET
 
 //Basic Colour Definitions
 
@@ -97,46 +112,47 @@ typedef char  LC_MsgLine_t[MSG_RECT_LINE_LENGTH];
  *
  **********************************************/
 
-LC_BarGraph_t			m_MotorGraph[6];	//Array to hold details of the 6 motor graphs
-SDL_Window*				m_window;           //Pointer to the SDL window
-SDL_Renderer*			m_renderer;			//main screen renderer used by all graphics objects
-SDL_Texture*			m_background;		//background graphics for the main screen
-SDL_Rect                m_msgArea;           //the rectangle used to display messages
+SDL_Window*				m_mainWindow;               //Pointer to the main graphic window
+SDL_Renderer*			m_mainRenderer;		        //main screen renderer used by all graphics objects
+SDL_Texture*			m_background;		        //background graphics for the main screen
+TTF_Font*				m_msgFont;		            //The font we use for all status messages
+TTF_Font*				m_bigFont;			        //Large font for throttle setting etc
+SDL_Rect                m_msgArea;                  //the rectangle used to display messages
+SDL_Rect                m_motorArea;                //the rectangle used to display the motor graph
 LC_MsgLine_t            m_msgBuf[MSG_RECT_LINES];   //buffer is the size of displayable lines
-LC_MsgLine_t            m_msgTempLine;      //A temporary buffer for assembling a message line with variables
-int                     m_msgPtr;           //Pointer used in update and display refresh operations
-LC_Button_t			    m_startBtn;			//graphic for the engine start button & related variables
-TTF_Font*				m_MsgFont;		    //The font we use for all status messages
-TTF_Font*				m_BigFont;			//Large font for throttle setting etc
-int                     m_maxAmps;          //Maximum amperage per motor - used to determine 100% for bar graph
-float                   m_onePercentAmps;   //One percent of the max amperage
+LC_MsgLine_t            m_msgTempLine;              //A temporary buffer for assembling a message line with variables
+int                     m_msgPtr;                   //Pointer used in update and display refresh operations
+LC_BarGraph_t			m_motorGraph[6];	        //Array to hold details of the 6 motor graphs
+LC_Button_t			    m_startBtn;			        //graphic for the engine start button & related variables
+int                     m_maxAmps;                  //Maximum amperage per motor - used to determine 100% for bar graph
+float                   m_onePercentAmps;           //One percent of the max amperage
 /*****************************************
  *
  * Function Prototypes
  *
  *****************************************/
 
-int  initScreen(void);
-void closeScreen(void);
-void screenService(void);
-void initMessageWindow(void);
-void initMotorGraph(void);
-void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int width, int border,  const SDL_Color backColour, const SDL_Color barColour);
-int  initButton(LC_Button_t* button, const char * BMPfilename, int xpos, int ypos, int height, int width, const char *cmd );
-void updateMessageWindow(void);
-void updateMotorGraphSet(void);
-void updateBarGraph(LC_BarGraph_t* graph, int milliamps, const SDL_Color barColour);
-void updateButton(LC_Button_t* button);
-void updateThrottle(void);
-void updateDynamic(void);
-void updateReverser(void);
-void updateSpeedo(void);
-void updateBattery(void);
-void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect);
-void renderSquare(const SDL_Rect* coords, const SDL_Color lineColour, const SDL_Color fillColour);
-void addMessageLine(const char* msgline);
-void clearMessageWindow(void);
-SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer,const char* fileName);
+int             initScreen(void);
+void            closeScreen(void);
+void            screenService(void);
+void            initMessageWindow(void);
+void            initMotorGraph(void);
+void            initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int width, int border,  const SDL_Color backColour, const SDL_Color barColour);
+int             initButton(LC_Button_t* button, const char * BMPfilename, int xpos, int ypos, int height, int width, const char *cmd );
+void            updateMessageWindow(void);
+void            updateMotorGraphSet(void);
+void            updateBarGraph(LC_BarGraph_t* graph, int motorAmps, const SDL_Color barColour);
+void            updateButton(LC_Button_t* button);
+void            updateThrottle(void);
+void            updateDynamic(void);
+void            updateReverser(void);
+void            updateSpeedo(void);
+void            updateBattery(void);
+void            renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect);
+void            renderSquare(const SDL_Rect* coords, const SDL_Color lineColour, const SDL_Color fillColour);
+void            addMessageLine(const char* msgline);
+void            clearMessageWindow(void);
+SDL_Texture*    loadTextureFromBMP(SDL_Renderer* renderer,const char* fileName);
 
 
 
