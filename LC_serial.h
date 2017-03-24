@@ -5,6 +5,8 @@
 //  Created by Chris Draper on 5/06/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+
 #ifdef linux
 #ifndef __LocoControl__LC_serial__
 	#define __LocoControl__LC_serial__
@@ -40,7 +42,7 @@
 
 	int initSerial(void);
 	void closeSerial(void);
-	int writeSerial( const char* buf, int byteCount);
+	int writeSerial( const char* buf,const int byteCount);
 	int readSerial(char* buf,const int MaxBytes);
 	int serviceSerial(char* cmdbuf,const int MaxBytes);
     unsigned int getConfigSpeed(void);

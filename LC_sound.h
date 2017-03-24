@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 20/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #ifndef LocoControl_Sound_h
 #define LocoControl_Sound_h
@@ -139,18 +140,17 @@ void closeAudio(void);
 void soundService(void);
 void freeBuffers(void);
 void serviceChannel(LC_SoundQueue_t *pQ);
-void fadeOutQueue(LC_SoundQueue_t *pQ,Uint32 fadeOut);
+void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut);
 void finishPlayingSound(LC_SoundQueue_t *pQ);
 void changeThrottle(void);
 void changeDynamic(void);
 void changeHorn(void);
 void changeCompressor(void);
-void queueSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 fadeIn, Uint32 fadeOut, int loopCount);
-void queuePartSound(LC_SoundQueue_t *pQ, int index, LC_SoundFile_t sound, Uint32 startPos, Uint32 endPos, Uint32 fadeIn, Uint32 fadeOut, int loopCount );
+void queueSound(LC_SoundQueue_t *pQ,const int index,const LC_SoundFile_t sound,const Uint32 fadeIn,const Uint32 fadeOut,const int loopCount);
+void queuePartSound(LC_SoundQueue_t *pQ,const int index,const LC_SoundFile_t sound,const Uint32 startPos,const Uint32 endPos,const Uint32 fadeIn,const Uint32 fadeOut,const int loopCount );
 void showChannelSummary(void);
 void clearAllQueues(void);
 void clearQueue(LC_SoundQueue_t *pQ);
 void playQueueItem(LC_SoundQueue_t *pQ);
-void stopQueue(LC_SoundQueue_t *pQ, Uint32 fadeOut);
 
 #endif

@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #include "LC_screen.h"
 
@@ -199,13 +200,12 @@ void initMotorGraph(void)
     m_motorArea.h = MOTOR_AREA_H;
     m_motorArea.w = MOTOR_AREA_W;
 
-	initBarGraph(&m_motorGraph[0], MOTOR_BAR0_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-	initBarGraph(&m_motorGraph[1], MOTOR_BAR1_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-	initBarGraph(&m_motorGraph[2], MOTOR_BAR2_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-	initBarGraph(&m_motorGraph[3], MOTOR_BAR3_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-	initBarGraph(&m_motorGraph[4], MOTOR_BAR4_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-	initBarGraph(&m_motorGraph[5], MOTOR_BAR5_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,LC_ALMOND,LC_DARK_GREEN);
-
+	initBarGraph(&m_motorGraph[0], MOTOR_BAR0_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR0_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_motorGraph[1], MOTOR_BAR1_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR1_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_motorGraph[2], MOTOR_BAR2_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR2_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_motorGraph[3], MOTOR_BAR3_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR3_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_motorGraph[4], MOTOR_BAR4_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR4_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+	initBarGraph(&m_motorGraph[5], MOTOR_BAR5_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR5_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
 
 }
 
@@ -216,7 +216,7 @@ void initMotorGraph(void)
  *
  *
  ****************************/
-void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int width, int border, const SDL_Color backColour, const SDL_Color barColour)
+void initBarGraph(LC_BarGraph_t* graph,const int xpos,const int ypos,const int height,const int width,const int border,const int labelx,const int labely,const int labelw,const int labelh,const SDL_Color backColour, const SDL_Color barColour)
 {
 
 	//creates single vertical bargraph object at the specified coordinates
@@ -232,6 +232,10 @@ void initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int widt
 	graph->bar.y        = ypos + height - border;
 	graph->bar.w        = width - (border * 2);
 	graph->bar.h        = height - (border * 2);
+    graph->label.x      = labelx;
+    graph->label.y      = labely;
+    graph->label.w      = labelw;
+    graph->label.h      = labelh;
 
 	graph->anchor = ypos + height - border;
 
@@ -317,9 +321,10 @@ void updateMotorGraphSet(void)
 	//updates each Motor's graph from global value.
 	//Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
 
-    int f = 0;
+    int         f = 0;
+    char        bartext[5] = {0,0,0,0,0};
 
-    renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GREEN);
+    renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GREEN);   //create the background
 
     for(f=0; f<6; f++)
 	{
@@ -328,6 +333,9 @@ void updateMotorGraphSet(void)
             updateBarGraph(&m_motorGraph[f], g_LC_ControlState.motorAmps[f],LC_LIGHT_GREEN);
         else
             updateBarGraph(&m_motorGraph[f], g_LC_ControlState.motorAmps[f],LC_RED);
+
+        snprintf(bartext,4,"%-2.1f",(float) g_LC_ControlState.motorAmps[f]);
+        renderText(bartext,m_msgFont,LC_BLACK,m_motorGraph[f].label);
 	}
 }
 
@@ -339,7 +347,7 @@ void updateMotorGraphSet(void)
  *
  *
  ****************************/
-void updateBarGraph(LC_BarGraph_t* graph, int motorAmps, const SDL_Color barColour)
+void updateBarGraph(LC_BarGraph_t* graph,const int motorAmps, const SDL_Color barColour)
 {
 
 	//takes an already initialised bar graph and redraws it to specified bar height and bar colour
@@ -364,7 +372,7 @@ void updateBarGraph(LC_BarGraph_t* graph, int motorAmps, const SDL_Color barColo
  *  Init a button
  *
  *****************************/
-int initButton(LC_Button_t* button, const char * BMPfilename, int xpos, int ypos, int height, int width, const char *cmd )
+int initButton(LC_Button_t* button, const char * BMPfilename,const int xpos,const int ypos,const int height,const int width, const char *cmd )
 {
 	//Loads the specified button structure with the bitmap and positional information
 	//returns 0 if OK
@@ -510,7 +518,7 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
 
 }
 
-void renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect)
+void renderText(const char* text, TTF_Font* font,const SDL_Color colour, SDL_Rect Message_rect)
 {
 
 	// as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first

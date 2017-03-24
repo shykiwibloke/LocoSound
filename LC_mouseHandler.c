@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 19/06/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #include "LC_mouseHandler.h"
 
@@ -42,7 +43,7 @@ void handleMouseDown(void)
  * actionClick - check all registered commands and action active ones.
  *
  *****************************************/
-void actionClick(int mx, int my)
+void actionClick(const int mx,const int my)
 {
 	//iterates through the active commands checking to see if mouse click happened within their rectangle
 	//action all commands that match.
@@ -105,7 +106,7 @@ int registerCommand(SDL_Rect *rect, const char *cmd )
  * unregisterCommand - unregister event actions when button no longer required
  *
  *****************************************/
-int unregisterCommand(int idx)
+int unregisterCommand(const int idx)
 {
 	//mark the specified command as inactive
 	m_mouseCommand[idx].IsActive = false;

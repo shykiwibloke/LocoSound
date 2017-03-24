@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #ifndef LocoControl_LC_main_h
 #define LocoControl_LC_main_h
@@ -42,7 +43,7 @@
  *
  *****************************************/
 
-void actionCommand(char *str, int len);
+void actionCommand(char *str, const int len);
 void initGlobals(void);
 void closeProgram(void);
 int  initModules(void);

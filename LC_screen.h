@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #ifndef __LocoControl__LC_screen__
 #define __LocoControl__LC_screen__
@@ -46,7 +47,10 @@
 #define MOTOR_BAR_Y  270
 #define MOTOR_BAR_H  280
 #define MOTOR_BAR_W  30
-#define MOTOR_BAR_B  1
+#define MOTOR_BAR_B  1                  //Border width of 1
+#define MOTOR_BAR_TEXT_Y MOTOR_BAR_Y + MOTOR_BAR_H + 10 + TTF_VERT_OFFSET //Text vert offset from BAR Y
+#define MOTOR_BAR_TEXT_H 12
+#define MOTOR_BAR_TEXT_W 30
 
 #define MSG_RECT_X 463                  //Message rectangle coords in logical screen units
 #define MSG_RECT_Y 385
@@ -99,7 +103,8 @@ typedef struct {
 	float			onePercent;		//number of pixels that make up one percent
 	int				anchor;			//used to xlate coords so bar anchored to same place
 	SDL_Rect		bar;			//x,y,w,h of the actual bar of the bargraph
-	SDL_Rect		background;		//x,y,w,h of the actual bar of the bargraph
+	SDL_Rect		background;		//x,y,w,h of the bars background
+    SDL_Rect        label;          //where the text label should be
 	SDL_Color		backColour;		//Colour of the background
 	SDL_Color		barColour;		//Colour of the bar on the bargraph
 } LC_BarGraph_t;
@@ -137,11 +142,11 @@ void            closeScreen(void);
 void            screenService(void);
 void            initMessageWindow(void);
 void            initMotorGraph(void);
-void            initBarGraph(LC_BarGraph_t* graph, int xpos, int ypos, int height, int width, int border,  const SDL_Color backColour, const SDL_Color barColour);
-int             initButton(LC_Button_t* button, const char * BMPfilename, int xpos, int ypos, int height, int width, const char *cmd );
+void            initBarGraph(LC_BarGraph_t* graph,const int xpos,const int ypos,const int height,const int width,const int border,const int labelx,const int labely,const int labelw,const int labelh,const SDL_Color backColour, const SDL_Color barColour);
+int             initButton(LC_Button_t* button,const char * BMPfilename,const int xpos,const int ypos,const int height,const int width, const char *cmd );
 void            updateMessageWindow(void);
 void            updateMotorGraphSet(void);
-void            updateBarGraph(LC_BarGraph_t* graph, int motorAmps, const SDL_Color barColour);
+void            updateBarGraph(LC_BarGraph_t* graph,const int motorAmps, const SDL_Color barColour);
 void            updateButton(LC_Button_t* button);
 void            updateThrottle(void);
 void            updateDynamic(void);

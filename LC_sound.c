@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 19/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #include "LC_sound.h"
 
@@ -261,11 +262,11 @@ void changeCompressor(void)
 *********************************************/
 
  void queueSound(LC_SoundQueue_t *pQ,
-					int index,
-					LC_SoundFile_t sound,
-					Uint32 fadeIn,
-					Uint32 fadeOut,
-					int loopCount)
+					const int index,
+					const LC_SoundFile_t sound,
+					const Uint32 fadeIn,
+					const Uint32 fadeOut,
+					const int loopCount)
 {
 
 	pQ->soundChunk[index] = Mix_QuickLoad_RAW(m_SoundSamples[sound]->abuf,m_SoundSamples[sound]->alen);
@@ -283,25 +284,27 @@ void changeCompressor(void)
  *********************************************/
 
 void queuePartSound(LC_SoundQueue_t *pQ,
-				int index,
-				LC_SoundFile_t sound,
-				Uint32 startPos,
-				Uint32 endPos,
-				Uint32 fadeIn,
-				Uint32 fadeOut,
-				int loopCount )
+				const int index,
+				const LC_SoundFile_t sound,
+				const Uint32 startPos,
+				const Uint32 endPos,
+				const Uint32 fadeIn,
+				const Uint32 fadeOut,
+				const int loopCount )
 {
 
 	Uint32 bufstart = (Uint32) m_SoundSamples[sound]->abuf;
 	Uint32 slen = m_SoundSamples[sound]->alen;
 	Uint32 reqlen = 0;
 
+	bufstart += startPos;					//startPos is the offset from the buffer start
+
 	//endpos check allows caller to specify a huge number to ensure end is reached.
 	//check for and trim to sound length before doing sample math to get requested length
-	if (endPos > slen) endPos = slen;
-
-	bufstart += startPos;					//startPos is the offset from the buffer start
-	reqlen = endPos - startPos;				//calculates the actual required length.
+	if (endPos > slen)
+        reqlen = slen - startPos;
+    else
+        reqlen = endPos - startPos;				//calculates the actual required length.
 
 /*   Debug code only
 	fprintf(stderr,"_______________\nFile buffer starts at \t\t %p \n",m_SoundSamples[sound]->abuf);
@@ -373,7 +376,7 @@ void playQueueItem(LC_SoundQueue_t *pQ)
  * fadeOutQueue Playing queue gets faded out
  *
  *********************************************/
-void fadeOutQueue(LC_SoundQueue_t *pQ,Uint32 fadeOut)
+void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut)
 {
 
 	pQ->currentFadeStart = SDL_GetTicks();         //Trigger the fade out of the sound in the service channel code

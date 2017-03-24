@@ -5,6 +5,7 @@
 //  Created by Chris Draper on 20/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
+//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
 
 #ifndef LocoControl_LC_globals_h
 #define LocoControl_LC_globals_h
