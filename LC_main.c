@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         int		len = 0;
         char	cmd_str[CMD_MAX_MSG_LEN];
 
-        len = readSerial(cmd_staddMessageLiner,CMD_MAX_MSG_LEN); //Service Serial Port
+        len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 		if(len > 0)
 		{
 			actionCommand(cmd_str,len);

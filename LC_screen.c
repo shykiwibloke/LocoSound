@@ -68,7 +68,7 @@ int initScreen()
 
 	// Create an application window with the following settings:
 	m_mainWindow = SDL_CreateWindow(
-								"Loco Control",                    // window title
+								"WCRLocoControllerV1",               // window title
 								SDL_WINDOWPOS_UNDEFINED,           // initial x position
 								SDL_WINDOWPOS_UNDEFINED,           // initial y position
 								getConfigVal("SCREEN_WIDTH"),      // width, in pixels
