@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #ifndef __LocoControl__LC_screen__
 #define __LocoControl__LC_screen__
@@ -71,6 +71,9 @@
 
 #define BAT_RECT_X 236                  //Battery voltage rectangle
 #define BAT_RECT_Y 180 + TTF_VERT_OFFSET
+
+#define BANNER_RECT_X 260                   //Users Loco name from the config file
+#define BANNER_RECT_Y 80 + TTF_VERT_OFFSET
 
 //Basic Colour Definitions
 
@@ -148,6 +151,7 @@ void            updateMessageWindow(void);
 void            updateMotorGraphSet(void);
 void            updateBarGraph(LC_BarGraph_t* graph,const int motorAmps, const SDL_Color barColour);
 void            updateButton(LC_Button_t* button);
+void            updateBanner(void);
 void            updateThrottle(void);
 void            updateDynamic(void);
 void            updateReverser(void);

@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #include "LC_main.h"
 
@@ -74,11 +74,11 @@ int main(int argc, char *argv[]) {
 		}
 #endif  // linux
 
-        //Service Screen & comms Subsystems once per second
+        //Service Screen Subsystem once per 1/4 second
 		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
 		{
 			screenService();
-			lastrun = SDL_GetTicks()+250;
+			lastrun = SDL_GetTicks()+20;
 		}
 
 	}  //End of Main Loop
@@ -348,7 +348,7 @@ int initModules()
     SDL_version linked;
     SDL_GetVersion(&linked);
 
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL ver:%d.%d.%d",linked.major, linked.minor, linked.patch);
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
     addMessageLine(m_msgTempLine);
 
 	atexit(closeProgram);  //setup the closedown callback

@@ -5,18 +5,18 @@
 //  Created by Chris Draper on 9/02/17.
 //  Copyright (c) 2017 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #include "LC_configReader.h"
 
-//the main configuration store
+//the main configuration store - set it to defaults so if something missed in config file it does not stop the system
 config_t m_config[] =
 	{
 		{"SCREEN_WIDTH", "1024" },
 		{"SCREEN_HEIGHT", "600" },
 		{"SCREEN_MAX","NO"},
 		{"FONT_FILE","FreeSans.ttf" },
-		{"LOCO_NAME","DFT7361" },
+		{"LOCO_NAME","DFB 7361" },
 		{"BAUD_RATE","9600" },
 		{"SERIAL_DEVICE","/dev/ttyAMA0" },
 		{"VOL_ENGINE_LEFT","127"},
@@ -52,7 +52,6 @@ config_t m_config[] =
 		{"FADE_LONG", "10000" },
 		{"MAX_AMPS","25"}
 
-
 	};
 
 const int m_CONFIG_SIZE = 39;           //alter this if you add any more config lines above
@@ -69,6 +68,8 @@ int loadConfig()
 
 	if (file != NULL)
 	{
+
+
 		char line[MAX_BUF] = {0};
 
 		while(fgets(line, sizeof(line), file) != NULL)

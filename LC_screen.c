@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #include "LC_screen.h"
 
@@ -31,6 +31,7 @@ void screenService(void)
             // render background, NULL for source and destination rectangles just means "use the default"
             SDL_RenderCopy(m_mainRenderer, m_background, NULL, NULL);
 
+            updateBanner();
             updateMessageWindow();
 			updateThrottle();
 			updateDynamic();
@@ -400,7 +401,23 @@ int initButton(LC_Button_t* button, const char * BMPfilename,const int xpos,cons
  *****************************/
 void updateButton(LC_Button_t* button)
 {
+	static int angle = 0;
 	SDL_RenderCopy(m_mainRenderer, button->image, NULL, &button->rect);
+	//SDL_RenderCopyEx(m_mainRenderer, button->image, NULL, &button->rect,angle++,NULL,SDL_FLIP_NONE);
+}
+
+
+/*****************************
+ *
+ *  Update Banner
+ *
+ *****************************/
+void updateBanner(void)
+{
+    static const SDL_Rect	Banner_rect = {BANNER_RECT_X,BANNER_RECT_Y,25,25};
+
+    renderText(getConfigStr("LOCO_NAME"), m_bigFont, LC_ORANGE, Banner_rect);
+
 }
 
 /*****************************
@@ -421,7 +438,7 @@ void updateThrottle(void)
 
 /*****************************
  *
- *  Update
+ *  Update Dynamic
  *
  *****************************/
 void updateDynamic()

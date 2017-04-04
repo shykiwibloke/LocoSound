@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=/home/pi/Desktop/LocoSound/locosound
+Hidden=false
+X-GNOME-Autostart-enabled=true
+Name=LocoSound
+Comment=Autostart LocoSound application
+
+Name[en_NZ]=LocoSound autostart

@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 20/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #ifndef LocoControl_Sound_h
 #define LocoControl_Sound_h
@@ -36,34 +36,36 @@
 #define  LC_MAX_CHANNELS		8
 #define  LC_PLAY_ONCE			0
 #define  LC_PLAY_LOOP			-1
+
 /*******************************************
  *  Sound Module Specific File Name Declarations
  *  NB: The Order and number of these must match
  *  the enumerations in SoundFile_t
  *******************************************/
 
-#define F_NONE     "NONE"          //dummy entry for file table. If this name turns up in a message you have a bug!
-#define F_START    "START.WAV"
-#define F_IDLE     "IDLE.WAV"
-#define F_NOTCH1   "NOTCH1.WAV"
-#define F_NOTCH2   "NOTCH2.WAV"
-#define F_NOTCH3   "NOTCH3.WAV"
-#define F_NOTCH4   "NOTCH4.WAV"
-#define F_NOTCH5   "NOTCH5.WAV"
-#define F_NOTCH6   "NOTCH6.WAV"
-#define F_NOTCH7   "NOTCH7.WAV"
-#define F_NOTCH8   "NOTCH8.WAV"
-#define F_REVUP	   "REVUP.WAV"		//IDLE TO NOTCH EIGHT
-#define F_REVDOWN  "REVDOWN.WAV"    //From Notch 8 to Idle
-#define F_HORN     "HORN.WAV"
-#define F_HORN_ST  "HORN_ST.WAV"
-#define F_HORN_END "HORN_END.WAV"
-#define F_BELL     "BELL.WAV"
-#define F_DYNBK_ST "DYNBK_ST.WAV"
-#define F_DYNBK    "DYNBK.WAV"
-#define F_AIRCOMP  "AIRCOMP.WAV"
-#define F_TRACTION "TRACTION.WAV"
-
+#define F_NONE          "NONE"          //dummy entry for file table. If this name turns up in a message you have a bug!
+#define F_START         "START.WAV"
+#define F_IDLE          "IDLE.WAV"
+#define F_NOTCH1        "NOTCH1.WAV"
+#define F_NOTCH2        "NOTCH2.WAV"
+#define F_NOTCH3        "NOTCH3.WAV"
+#define F_NOTCH4        "NOTCH4.WAV"
+#define F_NOTCH5        "NOTCH5.WAV"
+#define F_NOTCH6        "NOTCH6.WAV"
+#define F_NOTCH7        "NOTCH7.WAV"
+#define F_NOTCH8        "NOTCH8.WAV"
+#define F_REVUP	        "REVUP.WAV"		//IDLE TO NOTCH EIGHT
+#define F_REVDOWN       "REVDOWN.WAV"    //From Notch 8 to Idle
+#define F_HORN          "HORN.WAV"
+#define F_HORN_ST       "HORN_ST.WAV"
+#define F_HORN_END      "HORN_END.WAV"
+#define F_BELL          "BELL.WAV"
+#define F_DYNBK_ST      "DYNBK_ST.WAV"
+#define F_DYNBK         "DYNBK.WAV"
+#define F_AIRCOMP       "AIRCOMP.WAV"
+#define F_AIRCOMP_END   "AIRCOMP_END.WAV"
+#define F_AIRDRYER      "AIRDRYER.WAV"
+#define F_TRACTION      "TRACTION.WAV"
 
 /*******************************************
  *  Sound Module Specific Type Definitions
@@ -72,27 +74,29 @@
  *******************************************/
 
 typedef enum {
-	SF_NONE     = -1,			  //No sound to play
-	SF_IDLE		=  0,
-	SF_NOTCH1	=  1,
-	SF_NOTCH2	=  2,
-	SF_NOTCH3	=  3,
-	SF_NOTCH4	=  4,
-	SF_NOTCH5	=  5,
-	SF_NOTCH6	=  6,
-	SF_NOTCH7   =  7,
-	SF_NOTCH8   =  8,
-	SF_REVUP	=  9,             //Acceleration sounds
-	SF_REVDOWN  = 10,
-	SF_START	= 11,             //Engine Starting Sound
-	SF_HORN_ST	= 12,
-	SF_HORN		= 13,             //Steady state horn that can be looped
-	SF_HORN_END = 14,
-	SF_BELL		= 15,             //Bell used for fail safe & emergency alarms. Also hear on starting the engine.
-	SF_DYNBK_ST	= 16,
-	SF_DYNBK	= 17,
-	SF_AIRCOMP	= 18,             //Air Compressor (Generally restricted to idle, but random
-	SF_TRACTION	= 19,             //Traction blower + gearbox noises
+	SF_NONE         = -1,			  //No sound to play
+	SF_IDLE		    =  0,
+	SF_NOTCH1	    =  1,
+	SF_NOTCH2	    =  2,
+	SF_NOTCH3	    =  3,
+	SF_NOTCH4	    =  4,
+	SF_NOTCH5	    =  5,
+	SF_NOTCH6	    =  6,
+	SF_NOTCH7       =  7,
+	SF_NOTCH8       =  8,
+	SF_REVUP	    =  9,             //Acceleration sounds
+	SF_REVDOWN      = 10,
+	SF_START	    = 11,             //Engine Starting Sound
+	SF_HORN_ST	    = 12,
+	SF_HORN		    = 13,             //Steady state horn that can be looped
+	SF_HORN_END     = 14,
+	SF_BELL		    = 15,             //Bell used for fail safe & emergency alarms. Also hear on starting the engine.
+	SF_DYNBK_ST	    = 16,
+	SF_DYNBK	    = 17,
+	SF_AIRCOMP	    = 18,             //Air Compressor (Generally restricted to idle, but random
+	SF_AIRCOMP_END  = 19,
+	SF_AIRDRYER     = 20,
+	SF_TRACTION	    = 21             //Traction blower + gearbox noises
 } LC_SoundFile_t;
 
 #define SF_MAX_ITEMS   21         //Used to determine the size of this enumeration
@@ -103,6 +107,7 @@ typedef struct {
 	char            *Qlabel;                             //points to a description of the owner of this queue
 	int				channel;							//The mixer channel we are using
 	bool			IsPlaying;							//True if this queue is currently being played. False when finished.
+	bool            IsInTransition;                     //Set to true if queue is changing - e.g. engine is moving between notches
 	int			    currentItem;						//gets incremented until it points to a track that repeats or is a SF_NONE
 	Uint32			currentFadeStart;					//ByteCount to start fading out
 	Uint32			currentPlayEnd;						//BytesCount to stop playing
@@ -126,7 +131,6 @@ typedef struct {
 #define LC_LOADWAV(name, index) \
     if ((m_SoundSamples[index] = Mix_LoadWAV(name)) == NULL) \
 	    { fprintf(stderr, "SDL_LoadWAV ERROR loading '%s': %s\n", name, SDL_GetError()); }
-
 
 
 /*****************************************

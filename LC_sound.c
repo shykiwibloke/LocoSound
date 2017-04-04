@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 19/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.0 released 24/03/2017 in time for use at Keirunga Railways open weekend Easter 2017
+//  VERSION 1.0.1 released 4/04/2017
 
 #include "LC_sound.h"
 
@@ -66,10 +66,15 @@ void soundService()
 	{
 		changeHorn();
 	}
-	if (g_LC_ControlState.ThrottlePos == 0 && g_LC_ControlState.DynBrakePos ==0)     //if throttle idle (i.e. engine has started already)
+	//Dont play compressor sounds until we are properly in idle i.e. engine has started AND we are not decelerating still
+	if (g_LC_ControlState.ThrottlePos == 0 && g_LC_ControlState.DynBrakePos ==0 && m_EngineQueue.IsInTransition == false)
 	{
 		changeCompressor();                     //compressor runs on random time
 	}
+	else if(m_AirCompQueue.IsPlaying)
+    {
+        fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out - we are not idling any longer.
+    }
 
 	//Go service the channels that are running (incl those just changed)
 	serviceChannel(&m_EngineQueue);
@@ -119,6 +124,7 @@ void changeThrottle(void)
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
 
+
 			//Traction Motor Blowers
 			if  (g_LC_ControlState.ThrottlePos > 6)				//traction sound should play when traction motors are working
             {
@@ -150,6 +156,7 @@ void changeThrottle(void)
 	}
 
 	//having set up a queue - trigger the playing of the first sound (others will follow from service channel)
+	m_EngineQueue.IsInTransition = true;          //signal to other systems we are in the process of changing the motor
 	playQueueItem(&m_EngineQueue);
 	m_SndThrottlePos = g_LC_ControlState.ThrottlePos;
 }
@@ -238,19 +245,30 @@ void changeHorn(void)
 void changeCompressor(void)
 {
 
-    int value = 2 + rand() % 6;            //2 - 7 mins range seed
-    static Uint32 torun = 60000;
+    int value = 2 + rand() % 6;            //3 - 5 mins range seed
+    static Uint32 torun = 30000;            //first time goes off 30 seconds into idle after startup
 
-    if SDL_TICKS_PASSED(SDL_GetTicks(),torun)    //TODO - dont allow to play while revving down
+    if(SDL_TICKS_PASSED(SDL_GetTicks(),torun))
     {
+        if (m_AirCompQueue.IsPlaying)
+        {
+            fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out gradually
+        }
+
         //start the air compressor sound
-        fprintf(stderr,"Compressor triggered with random value of %d", value);
 		clearQueue(&m_AirCompQueue);
 		queueSound(&m_AirCompQueue, 0, SF_AIRCOMP, 0, 100, LC_PLAY_ONCE);
+		queueSound(&m_AirCompQueue,1,SF_AIRCOMP_END,0,100,LC_PLAY_ONCE);
 		playQueueItem(&m_AirCompQueue);
 
         //set the next time to run
-        torun = SDL_GetTicks()+ (value * 60000);   //set current time plus value * one minute
+        torun = SDL_GetTicks()+ (value * 60000);   //set current time plus value * one minute to give 1 - 5 mins range
+    }
+    else if(!m_AirCompQueue.IsPlaying)  //if queue is currently not playing
+    {
+        clearQueue(&m_AirCompQueue);
+ 		queueSound(&m_AirCompQueue, 0, SF_AIRDRYER, 0, 100, LC_PLAY_LOOP);
+        playQueueItem(&m_AirCompQueue);
     }
 
 }
@@ -408,14 +426,7 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound finished?
 		if (SDL_TICKS_PASSED(currentTime,pQ->currentPlayEnd) ) //check for complete end-of-sound b4 checking fade out times
 		{
-			//if (SDL_TICKS_PASSED(currentTime,pQ->currentPlayEnd)) //check end b4 fade - duplicate!
 			fprintf(stderr,"calculated time expired\n");
-
-			if ( !Mix_Playing(pQ->channel)) //check end b4 fade
-			{
-				fprintf(stderr,"%s chan %d confirmed expired\n",pQ->Qlabel,pQ->channel);
-
-			}
 			finishPlayingSound(pQ);
 
 		}
@@ -450,8 +461,15 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 	}
 	else
 	{
-		// there are more in this queue - so go start the next one.
-		pQ->currentItem++;
+		// there are more in this queue - so tidy up and go start the next one.
+
+        next++;
+
+   		if (pQ->soundChunk[next] == NULL || next == LC_SOUND_QUEUE_MAX)
+            pQ->IsInTransition = false;                                 //next sound is the last, so will be no longer in transition
+
+
+		pQ->currentItem++;      //inc array index and start the next sound
 		playQueueItem(pQ);
 	}
 }
@@ -550,6 +568,7 @@ void clearQueue(LC_SoundQueue_t *pQ)
 	int f;
 
 	pQ->IsPlaying = false;
+	pQ->IsInTransition = false;
 	pQ->currentItem = 0;
 	pQ->currentFadeStart = 0;
 	pQ->currentPlayEnd = 0;
@@ -621,6 +640,8 @@ int initAudio(void)
 	LC_LOADWAV(F_DYNBK_ST,SF_DYNBK_ST);
 	LC_LOADWAV(F_DYNBK,SF_DYNBK);
     LC_LOADWAV(F_AIRCOMP, SF_AIRCOMP);
+    LC_LOADWAV(F_AIRCOMP_END, SF_AIRCOMP_END);
+    LC_LOADWAV(F_AIRDRYER, SF_AIRDRYER);
 	LC_LOADWAV(F_TRACTION,SF_TRACTION);
 
 	//Load up the Notch points in the Rev Up / Rev Down control Arrays from the config file
