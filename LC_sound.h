@@ -99,7 +99,7 @@ typedef enum {
 	SF_TRACTION	    = 21             //Traction blower + gearbox noises
 } LC_SoundFile_t;
 
-#define SF_MAX_ITEMS   21         //Used to determine the size of this enumeration
+#define SF_MAX_ITEMS   22         //Used to determine the size of this enumeration
 
 
 //sound queue structure definition
