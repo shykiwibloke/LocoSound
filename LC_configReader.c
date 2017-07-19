@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 9/02/17.
 //  Copyright (c) 2017 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #include "LC_configReader.h"
 
@@ -133,7 +133,7 @@ void putConfigVal(const char * label, const char * value)
 		f++;
 	}
 
-	fprintf(stderr,"Invalid or unknown config variable in file: %s=%s\n",label,value);
+ 	fprintf(stderr,"Invalid or unknown config variable in file: %s=%s\n",label,value);
 
 }
 

@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #include "LC_main.h"
 
@@ -357,13 +357,14 @@ int initModules()
 	if(initScreen() != 0)
 	{
 		fprintf(stderr, "Initalising Screen failed, program terminated\n");
-		exit(1);    //error setting up
+		exit(EXIT_FAILURE);    //error setting up
 	}
     addMessageLine("Screen & Fonts Initialized....OK");
 	if(initAudio() != 0)
 	{
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR","Audio Initialization failed",m_mainWindow);
 		fprintf(stderr, "Initalising Audio failed, program terminated\n");
-		exit(1);    //error setting up
+		exit(EXIT_FAILURE);    //error setting up
 	}
 
     addMessageLine("Audio Generator & Mixer Initialized....OK");
@@ -372,6 +373,7 @@ int initModules()
 #ifdef linux
 	if (initSerial() != 0)    //not strictly SDL but safe place to put it
 	{
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Loco Control Stand Comms Failed to start",m_mainWindow);
 		fprintf(stderr,"Warning: Error initializing comms to Loco Control Stand. Keyboard Control Only Mode\n");
 	}
     addMessageLine("Comms Initialized....OK");
@@ -379,6 +381,8 @@ int initModules()
 #endif
 #ifdef _WIN32
         addMessageLine("Comms currently disabled for windows version");
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"WARNING","Windows version does not support comms. Keyboard mode now active",m_mainWindow);
+
 #endif // _WIN32
 
 	return 0; //success
@@ -395,11 +399,7 @@ int initModules()
 
 void closeProgram(void)
 {
-
-	fprintf(stderr,"about to close SDL\n");
 	SDL_Quit();
-	fprintf(stderr,"Program Closed OK\n");
-
 }
 
 /*********************************************

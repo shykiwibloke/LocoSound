@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #include "LC_screen.h"
 
@@ -82,7 +82,8 @@ int initScreen()
 	if (m_mainWindow == NULL)
     {
 		// In the event that the window could not be made...
-		fprintf(stderr,"Could not create window: %s\n", SDL_GetError());
+		//note - cant put simple message box here as we dont have a window to put it on!
+		fprintf(stderr,"Could not create window:'%s'\n", SDL_GetError());
 		return 1;
 	}
 	else
@@ -96,8 +97,8 @@ int initScreen()
 		m_mainRenderer = SDL_CreateRenderer( m_mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE );
 		if( m_mainRenderer == NULL )
 		{
-			fprintf(stderr, "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-			return 1;
+	        fprintf(stderr,"Could not create renderer:'%s'\n", SDL_GetError());
+			exit(EXIT_FAILURE);
 		}
 
         //necessary to esnure all the graphics are placed as intended when we do not know the exact size of the displayed window
@@ -113,8 +114,8 @@ int initScreen()
  		//Now initialize the fonts we wish to use
 		if(TTF_Init()==-1)
         {
-			printf("Error Initializing SDL True Type Font Module: %s\n", TTF_GetError());
-			exit(2);
+			printf("Error Initializing SDL True Type Font Module: '%s'\n", TTF_GetError());
+			exit(EXIT_FAILURE);
 		}
 
         const SDL_version *link_version=TTF_Linked_Version();
@@ -124,13 +125,17 @@ int initScreen()
 		m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 12); //this opens a font style and sets a point size
 		if (m_msgFont == NULL)
         {
-			fprintf(stderr,"Could not open message font: %s\n",SDL_GetError());
+
+			fprintf(stderr,"Could not open message font: '%s'\n",SDL_GetError());
+	        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
+            exit(EXIT_FAILURE);
 		}
 
 		m_bigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 40); //this opens a font style and sets a point size
 		if (m_bigFont == NULL)
         {
-			fprintf(stderr,"Could not open big font: %s\n",SDL_GetError());
+	        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
+			exit(EXIT_FAILURE);
 		}
 
        //initialize the various sub-sections of the screen area
@@ -158,9 +163,6 @@ void closeScreen(void)
 
 	SDL_DestroyWindow(m_mainWindow);
 	SDL_DestroyRenderer(m_mainRenderer);
-
-	fprintf(stderr,"Screen Closed OK\n");
-
 }
 
 
@@ -387,6 +389,7 @@ int initButton(LC_Button_t* button, const char * BMPfilename,const int xpos,cons
 	if(button->image == NULL)
 	{
 		fprintf(stderr,"Button Image file %s failed to load\n",BMPfilename);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Button Image file not found or failed to load",m_mainWindow);
 		return 1;
 	}
 
@@ -471,6 +474,7 @@ void updateReverser(void)
 	{
 		renderText("REVERSE", m_bigFont, LC_RED,Dynamic_rect);
 	}
+
 	else if(!g_LC_ControlState.DirForward && !g_LC_ControlState.DirReverse)
 	{
 		renderText("NEUTRAL", m_bigFont, LC_DARK_GREEN,Dynamic_rect);
@@ -498,6 +502,7 @@ void updateBattery(void)
 
     char str[15];
 
+
     sprintf(str,"%.2f volts", g_LC_ControlState.vbat);
     renderText(str, m_bigFont, LC_BLACK, Battery_rect);
 }
@@ -523,6 +528,7 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
 	{
 
 		fprintf(stderr, "Unable to load image %s\n",fileName);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Cant load image file. See log for details",m_mainWindow);
 
 	}
 

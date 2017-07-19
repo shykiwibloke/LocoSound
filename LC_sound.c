@@ -1,11 +1,11 @@
 //
-//  main.c
+//  LC_sound.c
 //  Loco Control Sound Manager
 //
 //  Created by Chris Draper on 19/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #include "LC_sound.h"
 
@@ -124,7 +124,7 @@ void changeThrottle(void)
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
 
-
+/* Blowers during power notches disabled for now as creates too much sound at once
 			//Traction Motor Blowers
 			if  (g_LC_ControlState.ThrottlePos > 6)				//traction sound should play when traction motors are working
             {
@@ -133,6 +133,7 @@ void changeThrottle(void)
 				playQueueItem(&m_TractionQueue);
 
 			}
+*/
 		}
 	}
 	else   //slow down or stop
@@ -147,11 +148,13 @@ void changeThrottle(void)
 			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
+/* Blowers during power notches disabled for now as creates too much sound at once
 			//Traction Motor Blowers
 			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
 			{
 				fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
 			}
+*/
 		}
 	}
 
@@ -215,15 +218,17 @@ void changeDynamic(void)
 *********************************************/
 void changeHorn(void)
 {
-    if (m_SndHornPressed)  //already playing - shut it up
-	{
-		fadeOutQueue(&m_HornQueue,m_fadeShort);  //force current sounds to fade out
-		clearQueue(&m_HornQueue);
-		queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE);
-		playQueueItem(&m_HornQueue);
-        fprintf(stderr,"J Press\n");
-		m_SndHornPressed = false;
-
+    if (m_SndHornPressed)
+    {
+        if(m_HornQueue.currentItem == 1)  //already playing main horn sound - shut it up
+        {
+            fadeOutQueue(&m_HornQueue,m_fadeShort);  //force current sounds to fade out
+            clearQueue(&m_HornQueue);
+            queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE);
+            playQueueItem(&m_HornQueue);
+            fprintf(stderr,"J Press\n");
+            m_SndHornPressed = false;
+        }
 	}
 	else  //horn not playing yet - let her rip!
 	{
@@ -287,12 +292,14 @@ void changeCompressor(void)
 					const int loopCount)
 {
 
-	pQ->soundChunk[index] = Mix_QuickLoad_RAW(m_SoundSamples[sound]->abuf,m_SoundSamples[sound]->alen);
+    if(m_SoundSamples[sound] != NULL)
+	{
+	    pQ->soundChunk[index] = Mix_QuickLoad_RAW(m_SoundSamples[sound]->abuf,m_SoundSamples[sound]->alen);
 
-	pQ->fadeInTime[index] = fadeIn;
-	pQ->fadeOutTime[index] = fadeOut;
-	pQ->loopCount[index] = loopCount;
-
+        pQ->fadeInTime[index] = fadeIn;
+        pQ->fadeOutTime[index] = fadeOut;
+        pQ->loopCount[index] = loopCount;
+	}
 }
 
 /*********************************************
@@ -311,40 +318,43 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 				const int loopCount )
 {
 
-	Uint32 bufstart = (Uint32) m_SoundSamples[sound]->abuf;
-	Uint32 slen = m_SoundSamples[sound]->alen;
-	Uint32 reqlen = 0;
-
-	bufstart += startPos;					//startPos is the offset from the buffer start
-
-	//endpos check allows caller to specify a huge number to ensure end is reached.
-	//check for and trim to sound length before doing sample math to get requested length
-	if (endPos > slen)
-        reqlen = slen - startPos;
-    else
-        reqlen = endPos - startPos;				//calculates the actual required length.
-
-/*   Debug code only
-	fprintf(stderr,"_______________\nFile buffer starts at \t\t %p \n",m_SoundSamples[sound]->abuf);
-	fprintf(stderr,"File length is \t\t %d bytes \n",slen);
-	fprintf(stderr,"File ends at address \t\t %p bytes \n",m_SoundSamples[sound]->abuf + slen);
-	fprintf(stderr,"Play starting at offset \t\t %d bytes \n",startPos);
-	fprintf(stderr,"So Play starting address is \t\t %p bytes \n",(void *)bufstart);
-	fprintf(stderr,"Play length is \t\t %d bytes \n",reqlen);
-	fprintf(stderr,"Play ending address is \t\t %X \n\n",bufstart + reqlen);
-*/
-	//bounds checking
-	if(bufstart == 0 || reqlen == 0 || reqlen > slen || startPos >= endPos)
-		fprintf(stderr,"Specified mix_chunk buffer, requested length and/or start/stop positions invalid\n");
-	else
+    if(m_SoundSamples[sound] != NULL)
 	{
 
-		pQ->soundChunk[index] =  Mix_QuickLoad_RAW((Uint8*) bufstart,reqlen);
-		pQ->fadeInTime[index] = fadeIn;
-		pQ->fadeOutTime[index] = fadeOut;
-		pQ->loopCount[index] = loopCount;
-	}
+        Uint32 bufstart = (Uint32) m_SoundSamples[sound]->abuf;
+        Uint32 slen = m_SoundSamples[sound]->alen;
+        Uint32 reqlen = 0;
 
+        bufstart += startPos;					//startPos is the offset from the buffer start
+
+        //endpos check allows caller to specify a huge number to ensure end is reached.
+        //check for and trim to sound length before doing sample math to get requested length
+        if (endPos > slen)
+            reqlen = slen - startPos;
+        else
+            reqlen = endPos - startPos;				//calculates the actual required length.
+
+    /*   Debug code only
+        fprintf(stderr,"_______________\nFile buffer starts at \t\t %p \n",m_SoundSamples[sound]->abuf);
+        fprintf(stderr,"File length is \t\t %d bytes \n",slen);
+        fprintf(stderr,"File ends at address \t\t %p bytes \n",m_SoundSamples[sound]->abuf + slen);
+        fprintf(stderr,"Play starting at offset \t\t %d bytes \n",startPos);
+        fprintf(stderr,"So Play starting address is \t\t %p bytes \n",(void *)bufstart);
+        fprintf(stderr,"Play length is \t\t %d bytes \n",reqlen);
+        fprintf(stderr,"Play ending address is \t\t %X \n\n",bufstart + reqlen);
+    */
+        //bounds checking
+        if(bufstart == 0 || reqlen == 0 || reqlen > slen || startPos >= endPos)
+            fprintf(stderr,"Specified mix_chunk buffer, requested length and/or start/stop positions invalid\n");
+        else
+        {
+
+            pQ->soundChunk[index] =  Mix_QuickLoad_RAW((Uint8*) bufstart,reqlen);
+            pQ->fadeInTime[index] = fadeIn;
+            pQ->fadeOutTime[index] = fadeOut;
+            pQ->loopCount[index] = loopCount;
+        }
+	}
 }
 
 /*********************************************
@@ -358,6 +368,11 @@ void playQueueItem(LC_SoundQueue_t *pQ)
    fprintf(stderr,"Starting to play %s sound %d\n",pQ->Qlabel,pQ->currentItem);
 
 	//set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
+
+//pQ->soundChunk[pQ->currentItem]->alen - put this in a subroutine called getchunklen(pQ) - which returns zero IF sund chunk is null
+
+
+
 	if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
 	{
 		pQ->currentPlayEnd = SDL_GetTicks();
@@ -482,6 +497,9 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 void showChannelSummary(void)
 {
 
+//todo - split into display and gather routines
+//and add a garbage collection routine that can call instead of display every so many seconds
+
     int     f = 0;
     char    *ptr = NULL;
 
@@ -504,7 +522,10 @@ void showChannelSummary(void)
             else if(m_TractionQueue.channel == f && m_TractionQueue.IsPlaying)
                 ptr = Q_LABEL_T;
             else
+            {
                 ptr = Q_LABEL_U;              //Unkown or Orphan
+                //todo - mark this for deletion next time around if in same state
+            }
 
             snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"%d channel is playing for %s", f, ptr);
             addMessageLine(m_msgTempLine);
@@ -688,8 +709,6 @@ void closeAudio(void)
     //Called automatically at exit DO NOT CALL FROM YOUR CODE
 	freeBuffers();
 	Mix_CloseAudio();
-	fprintf(stderr,"Sound Closed\n");
-
 }
 
 /*********************************************
@@ -710,18 +729,6 @@ void freeBuffers(void)
 
         fprintf(stderr,"Sound sample buffers freed\n");
     }
-}
-
-/*********************************************
-*
-*  Call back Hack
-*
-*********************************************/
-
-void handleSoundCallback(int channel)
-{
-	//Used for debug only - inserts message in debug stream to show Mixer has recognized channel as completed playing
-    fprintf(stderr,"Callback for channel %d\n",channel);
 }
 
 

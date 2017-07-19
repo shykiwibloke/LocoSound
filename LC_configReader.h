@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 9/02/17.
 //  Copyright (c) 2017 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #ifndef LocoControl_LC_configReader_h
 #define LocoControl_LC_configReader_h

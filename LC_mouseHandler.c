@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 19/06/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #include "LC_mouseHandler.h"
 
@@ -61,7 +61,6 @@ void actionClick(const int mx,const int my)
             && ((m_mouseCommand[f].rect.h + m_mouseCommand[f].rect.y) > my))
 			{
 				//mouse click was definitely inside an active area - go action its command
-                    fprintf(stderr,"about to send the S command\n");
 				SDL_PushEvent(&m_mouseCommand[f].event);
 
 			}

@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 20/09/14.
 //  Copyright (c) 2014 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.1 released 4/04/2017
+//  VERSION 1.0.2 released 11/04/2017
 
 #ifndef LocoControl_Sound_h
 #define LocoControl_Sound_h
@@ -130,7 +130,10 @@ typedef struct {
 
 #define LC_LOADWAV(name, index) \
     if ((m_SoundSamples[index] = Mix_LoadWAV(name)) == NULL) \
-	    { fprintf(stderr, "SDL_LoadWAV ERROR loading '%s': %s\n", name, SDL_GetError()); }
+    {    SDL_HideWindow(m_mainWindow); \
+     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error loading this Sound File:",name,m_mainWindow); \
+         SDL_ShowWindow(m_mainWindow); \
+      fprintf(stderr, "SDL_LoadWAV ERROR loading '%s': %s\n", name, SDL_GetError()); }
 
 
 /*****************************************
