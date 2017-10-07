@@ -194,6 +194,10 @@ int handleKey(SDL_KeyboardEvent key) {
 			rtn = 1;
             break;
 
+		case SDLK_m:  //change mode
+            changeScreenMode();
+            break;
+
 		case SDLK_F1:
           //  snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"",);
             addMessageLine(" ");

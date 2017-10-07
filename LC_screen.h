@@ -58,7 +58,7 @@
 #define MSG_RECT_H 200
 #define MSG_RECT_LINES 16               //Max number of lines that will fit on the screen
 #define MSG_RECT_LINE_LENGTH 80         //max number of characters that will fit on one line
-#define MSG_RECT_LINE_HEIGHT 12
+#define MSG_RECT_LINE_HEIGHT 30
 
 #define DYN_RECT_X 954                  //Dynamic Control rectangle
 #define DYN_RECT_Y 226 + TTF_VERT_OFFSET
@@ -94,6 +94,12 @@ static const SDL_Color LC_PURPLE	  =	{0x80,0x00,0x80,0xff};
 static const SDL_Color LC_BROWN		  =	{0x99,0x66,0x33,0xff};
 static const SDL_Color LC_ALMOND	  = {0xff,0xde,0xad,0xff};
 
+typedef enum {
+    MODE_GRAPHIC,                   //Screen is currently showing graphics (default)
+    MODE_DIAGNOSTIC,                       //Screen is currently showing system messages
+    MODE_CONFIG,                    //System is currently displaying config options/info
+} LC_ScreenMode_t;
+
 typedef struct {
 	SDL_Rect		rect;			//x,y,w,h of the button
 	SDL_Texture* 	image;			//bitmap or gif to display
@@ -125,6 +131,7 @@ SDL_Renderer*			m_mainRenderer;		        //main screen renderer used by all grap
 SDL_Texture*			m_background;		        //background graphics for the main screen
 TTF_Font*				m_msgFont;		            //The font we use for all status messages
 TTF_Font*				m_bigFont;			        //Large font for throttle setting etc
+LC_ScreenMode_t         m_screenMode;               //The current mode of the screen
 SDL_Rect                m_msgArea;                  //the rectangle used to display messages
 SDL_Rect                m_motorArea;                //the rectangle used to display the motor graph
 LC_MsgLine_t            m_msgBuf[MSG_RECT_LINES];   //buffer is the size of displayable lines
@@ -132,6 +139,7 @@ LC_MsgLine_t            m_msgTempLine;              //A temporary buffer for ass
 int                     m_msgPtr;                   //Pointer used in update and display refresh operations
 LC_BarGraph_t			m_motorGraph[6];	        //Array to hold details of the 6 motor graphs
 LC_Button_t			    m_startBtn;			        //graphic for the engine start button & related variables
+LC_Button_t             m_menuBtn;                  //graphic for the diagnostic screen mode button
 int                     m_maxAmps;                  //Maximum amperage per motor - used to determine 100% for bar graph
 float                   m_onePercentAmps;           //One percent of the max amperage
 /*****************************************
@@ -143,6 +151,7 @@ float                   m_onePercentAmps;           //One percent of the max amp
 int             initScreen(void);
 void            closeScreen(void);
 void            screenService(void);
+void            changeScreenMode(void);
 void            initMessageWindow(void);
 void            initMotorGraph(void);
 void            initBarGraph(LC_BarGraph_t* graph,const int xpos,const int ypos,const int height,const int width,const int border,const int labelx,const int labely,const int labelw,const int labelh,const SDL_Color backColour, const SDL_Color barColour);
