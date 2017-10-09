@@ -52,13 +52,15 @@
 #define MOTOR_BAR_TEXT_H 12
 #define MOTOR_BAR_TEXT_W 30
 
-#define MSG_RECT_X 463                  //Message rectangle coords in logical screen units
-#define MSG_RECT_Y 385
-#define MSG_RECT_W 540
-#define MSG_RECT_H 200
+#define MSG_RECT_X 10                  //Message rectangle coords in logical screen units
+#define MSG_RECT_Y 120
+#define MSG_RECT_H 130
 #define MSG_RECT_LINES 16               //Max number of lines that will fit on the screen
 #define MSG_RECT_LINE_LENGTH 80         //max number of characters that will fit on one line
-#define MSG_RECT_LINE_HEIGHT 30
+#define MSG_RECT_FONT_HEIGHT 22
+#define MSG_RECT_LINE_HEIGHT 28
+
+#define LARGE_FONT_HEIGHT 40
 
 #define DYN_RECT_X 954                  //Dynamic Control rectangle
 #define DYN_RECT_Y 226 + TTF_VERT_OFFSET
@@ -84,7 +86,7 @@ static const SDL_Color LC_LIGHT_GRAY  =	{0xaa,0xaa,0xaa,0xff};
 static const SDL_Color LC_WHITE		  =	{0xff,0xff,0xff,0xff};
 static const SDL_Color LC_RED		  =	{0xff,0x00,0x00,0xff};
 static const SDL_Color LC_LIGHT_GREEN = {0x8a,0xfa,0x0a,0xff};
-static const SDL_Color LC_DARK_GREEN  =	{0x38,0x68,0x02,0xff};
+static const SDL_Color LC_DARK_GREEN  =	{0x00,0x64,0x00,0xff};
 static const SDL_Color LC_BLUE		  =	{0x00,0x00,0xff,0xff};
 static const SDL_Color LC_CYAN		  =	{0x00,0xff,0xff,0xff};
 static const SDL_Color LC_YELLOW	  =	{0xff,0xff,0x00,0xff};

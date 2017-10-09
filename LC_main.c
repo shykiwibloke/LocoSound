@@ -173,10 +173,16 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 
 		case SDLK_s:
-			g_LC_ControlState.ThrottleActive = true;		//make throttle active and trigger start
-			g_LC_ControlState.DynBrakeActive = false;
-			g_LC_ControlState.ThrottlePos = 0;
-			addMessageLine("Starting Prime Mover...");
+		    //todo - make this start / stop and cant stop until going properly
+		    if (g_LC_ControlState.ThrottleActive == false)
+			{
+			    g_LC_ControlState.ThrottleActive = true;		//make throttle active and trigger start
+                g_LC_ControlState.DynBrakeActive = false;
+                g_LC_ControlState.ThrottlePos = 0;
+                addMessageLine("Starting Prime Mover...");
+			} else {
+                g_LC_ControlState.ThrottlePos = -1;
+			}
 			break;
 
 		case SDLK_t:

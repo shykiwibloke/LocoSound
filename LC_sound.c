@@ -123,24 +123,15 @@ void changeThrottle(void)
 			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
-
-/* Blowers during power notches disabled for now as creates too much sound at once
-			//Traction Motor Blowers
-			if  (g_LC_ControlState.ThrottlePos > 6)				//traction sound should play when traction motors are working
-            {
-				clearQueue(&m_TractionQueue);
-				queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP);
-				playQueueItem(&m_TractionQueue);
-
-			}
-*/
 		}
 	}
 	else   //slow down or stop
 	{
 		if ( g_LC_ControlState.ThrottlePos == -1)  //special case - stop engine
 		{
-			//todo - engine + traction stop
+			//todo - engine
+			fprintf(stderr, "THROTTLE STOP REC'D\n");
+            g_LC_ControlState.ThrottleActive = false;
 		}
 		else  //General Deceleration handling
 		{
@@ -148,13 +139,6 @@ void changeThrottle(void)
 			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
-/* Blowers during power notches disabled for now as creates too much sound at once
-			//Traction Motor Blowers
-			if (g_LC_ControlState.ThrottlePos < 3 && m_TractionQueue.IsPlaying)
-			{
-				fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
-			}
-*/
 		}
 	}
 
@@ -365,43 +349,47 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 void playQueueItem(LC_SoundQueue_t *pQ)
 {
 
-   fprintf(stderr,"Starting to play %s sound %d\n",pQ->Qlabel,pQ->currentItem);
+    //At least the first sound chunk needs to be not null or the code will crash
+   if(pQ->soundChunk[0] != NULL)
+   {
 
-	//set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
+       fprintf(stderr,"Starting to play %s sound %d\n",pQ->Qlabel,pQ->currentItem);
 
-//pQ->soundChunk[pQ->currentItem]->alen - put this in a subroutine called getchunklen(pQ) - which returns zero IF sund chunk is null
+        //set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
 
-
-
-	if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
-	{
-		pQ->currentPlayEnd = SDL_GetTicks();
-		pQ->currentPlayEnd += ((pQ->soundChunk[pQ->currentItem]->alen / LC_SOUND_SAMPLE_RATE )*250); //milliseconds from bytes
-		pQ->currentFadeStart = pQ->currentPlayEnd - pQ->fadeOutTime[pQ->currentItem];
-	} else {
-		pQ->currentPlayEnd = 99999999;
-		pQ->currentFadeStart = 99999999;
-	}
-
- 	//Play first queue sound on next available channel
-	pQ->channel = Mix_FadeInChannel(-1, pQ->soundChunk[pQ->currentItem],pQ->loopCount[pQ->currentItem], pQ->fadeInTime[pQ->currentItem]);
+    //pQ->soundChunk[pQ->currentItem]->alen - put this in a subroutine called getchunklen(pQ) - which returns zero IF sund chunk is null
 
 
-	if (pQ->channel == -1)
-	{
-		pQ->IsPlaying = false;
-		fprintf(stderr,"Error playing sound %d on channel %d for %s\n",pQ->currentItem, pQ->channel,pQ->Qlabel);
-	}
-	else
-	{
-        //Set the overall volume of the channel properly here according to user config settings
-        Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
 
-		pQ->IsPlaying = true;
-		fprintf(stderr,"%s sound %d assigned channel %d and playing OK \n",pQ->Qlabel,pQ->currentItem, pQ->channel);
+        if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
+        {
+            pQ->currentPlayEnd = SDL_GetTicks();
+            pQ->currentPlayEnd += ((pQ->soundChunk[pQ->currentItem]->alen / LC_SOUND_SAMPLE_RATE )*250); //milliseconds from bytes
+            pQ->currentFadeStart = pQ->currentPlayEnd - pQ->fadeOutTime[pQ->currentItem];
+        } else {
+            pQ->currentPlayEnd = 99999999;
+            pQ->currentFadeStart = 99999999;
+        }
 
-	}
+        //Play first queue sound on next available channel
+        pQ->channel = Mix_FadeInChannel(-1, pQ->soundChunk[pQ->currentItem],pQ->loopCount[pQ->currentItem], pQ->fadeInTime[pQ->currentItem]);
 
+
+        if (pQ->channel == -1)
+        {
+            pQ->IsPlaying = false;
+            fprintf(stderr,"Error playing sound %d on channel %d for %s\n",pQ->currentItem, pQ->channel,pQ->Qlabel);
+        }
+        else
+        {
+            //Set the overall volume of the channel properly here according to user config settings
+            Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
+
+            pQ->IsPlaying = true;
+            fprintf(stderr,"%s sound %d assigned channel %d and playing OK \n",pQ->Qlabel,pQ->currentItem, pQ->channel);
+
+        }
+    }
 }
 
 /*********************************************

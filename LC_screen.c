@@ -33,19 +33,30 @@ void screenService(void)
             SDL_RenderCopy(m_mainRenderer, m_background, NULL, NULL);
 
             updateBanner();
-            updateMessageWindow();
-            updateThrottle();
-            updateDynamic();
-            updateReverser();
-            updateSpeedo();
-            updateBattery();
-            if(g_LC_ControlState.ThrottlePos == -1)
-                updateButton(&m_startBtn);					//only want to show this button if the engine is not yet started.
-            else
-                updateMotorGraphSet();
+
             updateButton(&m_menuBtn);
 
+
+                   //initialize the various sub-sections of the screen area
+            switch(m_screenMode)
+            {
+                case MODE_DIAGNOSTIC:
+                    updateMessageWindow();
+                    break;
+                case MODE_CONFIG:               //todo no config mode for now so allow it to go to graphic/default
+                case MODE_GRAPHIC:
+                default:
+                    updateThrottle();
+                    updateDynamic();
+                    updateReverser();
+                    updateSpeedo();
+                    updateBattery();
+                    updateButton(&m_startBtn);					//only want to show this button if the engine is not yet started.
+                    updateMotorGraphSet();
+            }
+
             SDL_RenderPresent(m_mainRenderer);		//go refresh the screen and return
+
         }
     }
 }
@@ -124,7 +135,7 @@ int initScreen()
         printf("SDL_ttf opened OK version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
 
         //Now open the fonts we need
-        m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 24); //this opens a font style and sets a point size
+        m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), MSG_RECT_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_msgFont == NULL)
         {
 
@@ -133,32 +144,22 @@ int initScreen()
             exit(EXIT_FAILURE);
         }
 
-        m_bigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), 40); //this opens a font style and sets a point size
+        m_bigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), LARGE_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_bigFont == NULL)
         {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
             exit(EXIT_FAILURE);
         }
 
-        //initialize the various sub-sections of the screen area
-        switch(m_screenMode)
-        {
-            case MODE_DIAGNOSTIC:
-                initMessageWindow();
-                break;
-            case MODE_CONFIG:               //todo no config mode for now so allow it to go to graphic/default
-            case MODE_GRAPHIC:
-            default:
-                initMotorGraph();
-                break;
-
-        }
+        initMotorGraph();
+        initMessageWindow();
 
         //Load any buttons or other overlay images that go on all screen modes here
-        initButton(&m_menuBtn,"MODE_BTN.BMP",810,10,70,210,"m");
+        initButton(&m_menuBtn,"MODE_BTN.BMP",805,45,70,210,"m");
 
         //todo - start button should become start stop
-        initButton(&m_startBtn,"START_BTN.BMP",180,340,150,150,"s");    //commands must be lower case!
+       // initButton(&m_startBtn,"START_BTN.BMP",180,340,150,150,"s");    //commands must be lower case!
+        initButton(&m_startBtn,"START_BTN.BMP",820,395,150,150,"s");    //commands must be lower case!
 
 
     }
@@ -188,25 +189,27 @@ void closeScreen(void)
  *****************************/
 void changeScreenMode(void)
 {
-    //todo - change the screen mode
-    addMessageLine(" IT WORKS!!!!!");
+    //Just the two modes to handle right now
+    //todo - add config mode when there is one!
+
+    if(m_screenMode == MODE_GRAPHIC)
+        m_screenMode = MODE_DIAGNOSTIC;
+    else
+        m_screenMode = MODE_GRAPHIC;
+
 }
 
 /*****************************
  *
- * Create window where system messages can be displayed
+ * Initalize the window where system messages can be displayed
  *
  *****************************/
 void initMessageWindow(void)
 {
-    //todo - resize to take most of screen
-    m_msgArea.x = MSG_RECT_X;   //reset the drawing pointers
+    m_msgArea.x = MSG_RECT_X;
     m_msgArea.y = MSG_RECT_Y;
-    m_msgArea.w = MSG_RECT_W;
-    m_msgArea.h = MSG_RECT_H;
-
-    //actual drawing of the window is done in the update code
-
+    m_msgArea.w = SCREEN_LOGICAL_W-MSG_RECT_X-MSG_RECT_X;
+    m_msgArea.h = SCREEN_LOGICAL_H-MSG_RECT_H;
 }
 
 /*****************************
@@ -304,7 +307,7 @@ void updateMessageWindow(void)
     {
         if(m_msgBuf[ptr][0] != 0)
         {
-            renderText(m_msgBuf[ptr],m_msgFont,LC_LIGHT_GREEN,thisline);
+            renderText(m_msgBuf[ptr],m_msgFont,LC_YELLOW,thisline);
             thisline.y+=MSG_RECT_LINE_HEIGHT;
         }
 
@@ -432,7 +435,7 @@ int initButton(LC_Button_t* button, const char * BMPfilename,const int xpos,cons
  *****************************/
 void updateButton(LC_Button_t* button)
 {
-    static int angle = 0;
+//    static int angle = 0;
     SDL_RenderCopy(m_mainRenderer, button->image, NULL, &button->rect);
     //SDL_RenderCopyEx(m_mainRenderer, button->image, NULL, &button->rect,angle++,NULL,SDL_FLIP_NONE);
 }
