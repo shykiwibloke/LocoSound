@@ -1,5 +1,5 @@
 # LocoSound
-Raspi (on Jessie with SDL2) based realtime sound generator for Miniature Diesel Locomotive
+Raspberrypi based realtime sound generator for Miniature Diesel Locomotive. Mine uses a Raspi 3 and HiFiBerry Amp+ for sound output.
 
 Project uses sound samples from real locomotive and manipulates/mixes them to get a rich 16bit stereo sound experience
 Supports:
