@@ -43,10 +43,10 @@
  *
  *****************************************/
 
-void actionCommand(char *str, const int len);
+void actionArduinoCommand(void);
 void initGlobals(void);
 void closeProgram(void);
-int  initModules(void);
+void  initModules(void);
 void getCmdLineOptions(int argc, char * const argv[]);
 int  handleKey(SDL_KeyboardEvent key);
 

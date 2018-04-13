@@ -137,19 +137,9 @@ int writeSerial( const char* buf,const int byteCount)
  *****************************************/
 
 
-int readSerial(char* buf,const int MaxBytes)
+int readSerial(char* cmdbuf,const int MaxBytes)
 {
- return serviceSerial(buf,MaxBytes);
-}
 
-/*****************************************
- *
- * serviceSerial()
- *
- *****************************************/
-
-int serviceSerial(char* cmdbuf,const int MaxBytes)
-{
 
 	//Reads bytes but only returns complete lines including the newline char from specified serial port
 	//Does not wait if no bytes ready to be read.
@@ -178,9 +168,10 @@ int serviceSerial(char* cmdbuf,const int MaxBytes)
                     strncpy(cmdbuf,m_assyBuf,rxlen-1);   //copy in the string without the delimiter
                     rtn = rxlen;                    //preserve number of bytes to return
                 }
+
                 rxlen = 0;                      //ready for another run
                 memset(m_assyBuf,0,MAX_CMD_LEN);
-                break;                          //jump out so recoved command can be processed
+                break;                          //jump out so received command can be processed
             }
         }
 

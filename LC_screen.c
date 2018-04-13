@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015 Winter Creek. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 1.0.3 released 03/04/2018
 
 #include "LC_screen.h"
 
@@ -19,7 +19,6 @@
 void screenService(void)
 {
     //Regular servicing of the screen contents.
-    //todo - add a context mode switch to update graphics, messages, config
 
     if (m_mainWindow)
     {
@@ -302,12 +301,12 @@ void updateMessageWindow(void)
     thisline.w = m_msgArea.w - 2;
     thisline.h = MSG_RECT_LINE_HEIGHT;
 
-    renderSquare(&m_msgArea,LC_WHITE,LC_DARK_GREEN);
+    renderSquare(&m_msgArea,LC_WHITE,LC_LIGHT_GREEN);
     for(f=0; f<MSG_RECT_LINES; f++)
     {
         if(m_msgBuf[ptr][0] != 0)
         {
-            renderText(m_msgBuf[ptr],m_msgFont,LC_YELLOW,thisline);
+            renderText(m_msgBuf[ptr],m_msgFont,LC_BLACK,thisline);
             thisline.y+=MSG_RECT_LINE_HEIGHT;
         }
 
@@ -364,9 +363,9 @@ void updateMotorGraphSet(void)
     {
         //are we generating (green) or consuming (red)?
         if(g_LC_ControlState.motorAmps[f] < 0)
-            updateBarGraph(&m_motorGraph[f], g_LC_ControlState.motorAmps[f],LC_LIGHT_GREEN);
+            updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_LIGHT_GREEN);
         else
-            updateBarGraph(&m_motorGraph[f], g_LC_ControlState.motorAmps[f],LC_RED);
+            updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_RED);
 
         snprintf(bartext,4,"%-2.1f",(float) g_LC_ControlState.motorAmps[f]);
         renderText(bartext,m_msgFont,LC_BLACK,m_motorGraph[f].label);
@@ -392,7 +391,21 @@ void updateBarGraph(LC_BarGraph_t* graph,const int motorAmps, const SDL_Color ba
 
     //update bar size and colour
     graph->barColour = barColour;
-    graph->bar.h = (int) graph->onePercent * abs((float)motorAmps/m_onePercentAmps);        //calculates percentage times pixels per percent
+
+    //check limit guards here
+    if (motorAmps != 0)
+    {
+        graph->bar.h = (int) graph->onePercent * abs((float)motorAmps/m_onePercentAmps);        //calculates percentage times pixels per percent
+    } else
+    {
+        graph->bar.h = 0;
+    }
+
+    if (graph->bar.h > graph->background.h)
+    {
+        graph->bar.h = graph->background.h;
+    }
+
     graph->bar.y = graph->anchor - graph->bar.h;
 
     //redraw bar
@@ -575,6 +588,11 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
 void renderText(const char* text, TTF_Font* font,const SDL_Color colour, SDL_Rect Message_rect)
 {
 
+    if (font == NULL)
+        {
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR using FONT",SDL_GetError(),m_mainWindow);
+            exit(EXIT_FAILURE);
+        }
     // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
     SDL_Surface* surfaceMessage = TTF_RenderUTF8_Blended(font, text, colour);
 
@@ -586,8 +604,8 @@ void renderText(const char* text, TTF_Font* font,const SDL_Color colour, SDL_Rec
 
     SDL_RenderCopy(m_mainRenderer, Message, NULL, &Message_rect); //you put the renderer's name first, the Message, the crop size(you can ignore this if you don't want to dabble with cropping), and the rect which is the size and coordinate of your texture
 
-    SDL_FreeSurface(surfaceMessage);
     SDL_DestroyTexture(Message);
+    SDL_FreeSurface(surfaceMessage);
 
 }
 

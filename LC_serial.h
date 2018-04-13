@@ -43,8 +43,7 @@
 	int initSerial(void);
 	void closeSerial(void);
 	int writeSerial( const char* buf,const int byteCount);
-	int readSerial(char* buf,const int MaxBytes);
-	int serviceSerial(char* cmdbuf,const int MaxBytes);
+	int readSerial(char* cmdbuf,const int MaxBytes);
     unsigned int getConfigSpeed(void);
 
 #endif /* defined(__LocoControl__LC_serial__) */

@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	getCmdLineOptions(argc, argv);  //parse and process any supplied command line options
 	loadConfig();					//load the users config file (used by many modules)
 	initGlobals();					//Init the applications global variables
-	initModules();						//Init the SDL systems we rely on for machine portability
+	initModules();					//Init the SDL systems we rely on for machine portability
 
 	if(g_Debug)
         addMessageLine("Debug option set by command line");
@@ -64,14 +64,9 @@ int main(int argc, char *argv[]) {
 //   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
 
 #ifdef linux
-        int		len = 0;
-        char	cmd_str[CMD_MAX_MSG_LEN];
 
-        len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
-		if(len > 0)
-		{
-			actionCommand(cmd_str,len);
-		}
+		actionArduinoCommand();
+
 #endif  // linux
 
         //Service Screen Subsystem once per 1/4 second
@@ -230,35 +225,32 @@ int handleKey(SDL_KeyboardEvent key) {
 
 /*********************************************
  *
- * actionCommand - takes a string received from the arduino loco controller and actions it
+ * actionArduinoCommand - takes a string received from the arduino loco controller and actions it
  *
  *********************************************/
 
-void actionCommand(char *str,const int len)
+void actionArduinoCommand(void)
 {
 	//splits received arduino messages into component parts and populates the supplied structure
 
-	char		cmd_class = ' ';
-	char		cmd_arg =  ' ';
-	char		cmd_msg[len];
+    int		    len = 0;
+    char	    cmd_str[CMD_MAX_MSG_LEN];
+    char		cmd_class;
+	char		cmd_arg;
+	char*	    cmd_msg;
 	SDL_Event   event;
 
-    memset(cmd_msg,0,len);    //explicitly zero the buffer
+    len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 
-	if(str == NULL)
+	if(len < 5 )    //check bounds of expected message - may not be all here yet
 	{
 		return;
 	}
 
-	if(len < 5 || len >= CMD_MAX_MSG_LEN )    //check bounds of message
-	{
-		return;
-	}
-
-	//string determined to be safe - extract the three fields we want
-	cmd_class = str[0];
-	cmd_arg = str[2];
-	strncpy(cmd_msg, &str[4], len);
+	//string determined to be complete - extract the three fields we want
+	cmd_class = cmd_str[0];
+	cmd_arg = cmd_str[2];
+	cmd_msg = &cmd_str[4];       //point to start of message
 
 
 	switch(cmd_class)
@@ -269,7 +261,6 @@ void actionCommand(char *str,const int len)
 			break;
 
 		case 'S':			//Sound command
-			fprintf(stderr,"XXXXXXXXXXXXXXXXXXXXXXXXXXX\n\n\n");
 			fprintf(stderr,"Sound: %c\n",cmd_arg);
 			event.type = SDL_KEYDOWN;
 			event.key.keysym.sym = cmd_arg;
@@ -279,7 +270,7 @@ void actionCommand(char *str,const int len)
 		case 'M':			//Motor amperage measurement - cmd-arg holds motor number and msg holds amps
 
             //ensure we dont have a null pointer or out-of-bounds motor number and cause a code exception
-			if(cmd_msg != NULL || cmd_arg >0 || cmd_arg <7)
+			if(cmd_msg != NULL && cmd_arg >0 && cmd_arg <7)
             {
                 g_LC_ControlState.motorAmps[cmd_arg-1] = atoi(cmd_msg);     //array is zero based , 0-5 for each motor
             }
@@ -291,11 +282,11 @@ void actionCommand(char *str,const int len)
             {
                 g_LC_ControlState.vbat = atoi(cmd_msg);     //get the vbat in milliamps
                 if (g_LC_ControlState.vbat != 0)
-                    g_LC_ControlState.vbat = g_LC_ControlState.vbat/1000; //get amps from milliamps
+                    g_LC_ControlState.vbat = g_LC_ControlState.vbat/10; //get volts from tenths of a volt
             }
 			break;
 		default:
-			fprintf(stderr, "Unrecognised command string: %s \n", str);
+			fprintf(stderr, "Unrecognised command string: %s \n", cmd_str);
 			break;
 	}
 
@@ -341,7 +332,7 @@ void initGlobals()
  * initializes the SDL Library and various modules of the application
  *
  *********************************************/
-int initModules()
+void initModules(void)
 {
     addMessageLine("Winter Creek Loco Sound (c) 2017 Initializing.....");
 
@@ -352,7 +343,7 @@ int initModules()
 	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
 		fprintf(stderr, "Unable to initialize SDL:  %s\n", SDL_GetError());
-		return 1;
+		return;
 	}
 
     SDL_version linked;
@@ -395,7 +386,7 @@ int initModules()
 
 #endif // _WIN32
 
-	return 0; //success
+	return;
 
 }
 

@@ -30,6 +30,7 @@ LC_SoundQueue_t  m_HornQueue;
 LC_SoundQueue_t	 m_AirCompQueue;
 LC_SoundQueue_t  m_TractionQueue;
 
+
 int	        	 m_RevUp[9];							//Holds the sample start/stop points for each notch in revup
 int	             m_RevDown[9];							//Holds the sample start/stop points for each notch in revdown
 
@@ -111,7 +112,7 @@ void changeThrottle(void)
 
 		if (m_SndThrottlePos <= -1)   //special case - startup sequence requested
 		{
-			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE);
+ 			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE);    //todo - dont set 'idle' until passed this point
 			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP);
 
@@ -129,9 +130,18 @@ void changeThrottle(void)
 	{
 		if ( g_LC_ControlState.ThrottlePos == -1)  //special case - stop engine
 		{
-			//todo - engine
+			//Kill Engine
 			fprintf(stderr, "THROTTLE STOP REC'D\n");
             g_LC_ControlState.ThrottleActive = false;
+
+            //Special manipulation of air compressor so it plays air dryer forever while we are shut down
+            if (m_AirCompQueue.IsPlaying)
+            {
+                fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out gradually
+            }
+            clearQueue(&m_AirCompQueue);
+            queueSound(&m_AirCompQueue, 0, SF_AIRDRYER, 0, 100, LC_PLAY_LOOP);
+            playQueueItem(&m_AirCompQueue);
 		}
 		else  //General Deceleration handling
 		{
@@ -233,6 +243,8 @@ void changeHorn(void)
 *********************************************/
 void changeCompressor(void)
 {
+
+//todo - alter this so it works when engine has not running - no compressor, but air dryer....
 
     int value = 2 + rand() % 6;            //3 - 5 mins range seed
     static Uint32 torun = 30000;            //first time goes off 30 seconds into idle after startup
