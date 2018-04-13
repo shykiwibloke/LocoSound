@@ -1,0 +1,9 @@
+
+This is a series of notes to remind me what I was going to do next
+
+On Raspi - test Alsa/Pulse with Bluetooth or USB properly
+Test Motor Amerage output - why Graph is not working
+
+In This code
+
+Buttons - Engine Start / Stop  Rest (to going), Screen swap to messages / config / graphics
