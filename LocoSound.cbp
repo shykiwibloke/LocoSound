@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="LocoSound" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option platforms="Unix;" />
+				<Option output="bin/Debug/LocoSound" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/LocoSound" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wfatal-errors" />
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add option="-lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer" />
+		</Linker>
+		<Unit filename="LC_configReader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_configReader.h" />
+		<Unit filename="LC_globals.h" />
+		<Unit filename="LC_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_main.h" />
+		<Unit filename="LC_mouseHandler.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_mouseHandler.h" />
+		<Unit filename="LC_screen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_screen.h" />
+		<Unit filename="LC_serial.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_serial.h" />
+		<Unit filename="LC_sound.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_sound.h" />
+		<Unit filename="LC_utilities.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LC_utilities.h" />
+		<Unit filename="LocoSound.conf" />
+		<Unit filename="TodoNotes.txt" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
