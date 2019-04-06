@@ -142,6 +142,7 @@ int                     m_msgPtr;                   //Pointer used in update and
 LC_BarGraph_t			m_motorGraph[6];	        //Array to hold details of the 6 motor graphs
 LC_Button_t			    m_startBtn;			        //graphic for the engine start button & related variables
 LC_Button_t             m_menuBtn;                  //graphic for the diagnostic screen mode button
+LC_Button_t             m_shutdownBtn;
 int                     m_maxAmps;                  //Maximum amperage per motor - used to determine 100% for bar graph
 float                   m_onePercentAmps;           //One percent of the max amperage
 /*****************************************

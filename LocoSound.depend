@@ -562,3 +562,106 @@
 1506919917 source:/home/chrisd/git-repos/locosound/LC_utilities.c
 	"LC_utilities.h"
 
+1545436102 source:c:\users\chris\documents\github\locosound\lc_serial.c
+	"LC_serial.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_serial.h
+	<errno.h>
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<unistd.h>
+	<fcntl.h>
+	<termios.h>
+	<sys/ioctl.h>
+	"LC_configReader.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_configreader.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdbool.h>
+	"LC_utilities.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_utilities.h
+	<stdbool.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<unistd.h>
+	<ctype.h>
+	<SDL2/SDL.h>
+	"LC_globals.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_globals.h
+	<stdbool.h>
+
+1533008453 source:c:\users\chris\documents\github\locosound\lc_configreader.c
+	"LC_configReader.h"
+
+1533008453 source:c:\users\chris\documents\github\locosound\lc_mousehandler.c
+	"LC_mouseHandler.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_mousehandler.h
+	<stdbool.h>
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<SDL2/SDL.h>
+	"LC_globals.h"
+
+1533008453 source:c:\users\chris\documents\github\locosound\lc_utilities.c
+	"LC_utilities.h"
+
+1546209961 source:c:\users\chris\documents\github\locosound\lc_main.c
+	"LC_main.h"
+
+1545274864 c:\users\chris\documents\github\locosound\lc_main.h
+	<stdbool.h>
+	<errno.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<unistd.h>
+	<SDL2/SDL.h>
+	<SDL2/SDL_mixer.h>
+	<SDL2/SDL_ttf.h>
+	"LC_globals.h"
+	"LC_utilities.h"
+	"LC_screen.h"
+	"LC_sound.h"
+	"LC_mouseHandler.h"
+	"LC_configReader.h"
+	"LC_serial.h"
+
+1545517531 c:\users\chris\documents\github\locosound\lc_screen.h
+	<stdbool.h>
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	"LC_utilities.h"
+	"LC_mouseHandler.h"
+	"LC_configReader.h"
+	<SDL2/SDL.h>
+	<SDL2/SDL_ttf.h>
+	<SDL2/SDL_mixer.h>
+	"LC_globals.h"
+
+1533008453 c:\users\chris\documents\github\locosound\lc_sound.h
+	<stdbool.h>
+	"LC_utilities.h"
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<SDL2/SDL.h>
+	<SDL2/SDL_mixer.h>
+	"LC_globals.h"
+	"LC_configReader.h"
+	"LC_screen.h"
+
+1554067391 source:c:\users\chris\documents\github\locosound\lc_screen.c
+	"LC_screen.h"
+
+1533008453 source:c:\users\chris\documents\github\locosound\lc_sound.c
+	"LC_sound.h"
+

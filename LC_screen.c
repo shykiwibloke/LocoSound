@@ -50,7 +50,9 @@ void screenService(void)
                     updateReverser();
                     updateSpeedo();
                     updateBattery();
-                    updateButton(&m_startBtn);					//only want to show this button if the engine is not yet started.
+                    updateButton(&m_startBtn);
+                    updateButton(&m_shutdownBtn);
+
                     updateMotorGraphSet();
             }
 
@@ -156,9 +158,9 @@ int initScreen()
         //Load any buttons or other overlay images that go on all screen modes here
         initButton(&m_menuBtn,"MODE_BTN.BMP",805,45,70,210,"m");
 
-        //todo - start button should become start stop
-       // initButton(&m_startBtn,"START_BTN.BMP",180,340,150,150,"s");    //commands must be lower case!
-        initButton(&m_startBtn,"START_BTN.BMP",820,395,150,150,"s");    //commands must be lower case!
+        initButton(&m_shutdownBtn,"SHUTDOWN.BMP",860,420,100,100,"x");    //commands must be lower case!
+
+        initButton(&m_startBtn,"START_BTN.BMP",680,395,150,150,"s");    //commands must be lower case!
 
 
     }

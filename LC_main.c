@@ -16,7 +16,8 @@
  *
  *********************************************/
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
 	int 	quit = 0;
 	Uint32 	lastrun = 0;
@@ -79,6 +80,7 @@ int main(int argc, char *argv[]) {
 	}  //End of Main Loop
 
 	closeProgram();									//Go clean up
+	system ("sudo shutdown -h now");
 	return 0;
 }
 
@@ -195,6 +197,11 @@ int handleKey(SDL_KeyboardEvent key) {
 			rtn = 1;
             break;
 
+		case SDLK_x:  //quit application
+		    fprintf(stderr,"Quitting Application & shutting down computer\n");
+			rtn = 1;
+            break;
+
 		case SDLK_m:  //change mode
             changeScreenMode();
             break;
@@ -228,21 +235,23 @@ int handleKey(SDL_KeyboardEvent key) {
  * actionArduinoCommand - takes a string received from the arduino loco controller and actions it
  *
  *********************************************/
-
+#ifdef linux
 void actionArduinoCommand(void)
 {
 	//splits received arduino messages into component parts and populates the supplied structure
 
     int		    len = 0;
-    char	    cmd_str[CMD_MAX_MSG_LEN];
+    char	    cmd_str[CMD_MAX_MSG_LEN] = "";
     char		cmd_class;
 	char		cmd_arg;
 	char*	    cmd_msg;
 	SDL_Event   event;
 
-    len = readSerial(cmd_str,CMD_MAX_MSG_LEN); //Service Serial Port
 
-	if(len < 5 )    //check bounds of expected message - may not be all here yet
+    len = readSerial(cmd_str,CMD_MAX_MSG_LEN-1); //Service Serial Port. Request one less chars than the buffer can hold
+                                                //to guarantee the last char is always a null for terminating argument strings
+
+	if(len < 5 || len != (int) strlen(cmd_str) )    //check bounds of expected message - may not be all here yet not not properly terminated
 	{
 		return;
 	}
@@ -250,7 +259,7 @@ void actionArduinoCommand(void)
 	//string determined to be complete - extract the three fields we want
 	cmd_class = cmd_str[0];
 	cmd_arg = cmd_str[2];
-	cmd_msg = &cmd_str[4];       //point to start of message
+	cmd_msg = &cmd_str[4];       //point to start of message - note there may not be one with all message types
 
 
 	switch(cmd_class)
@@ -270,9 +279,11 @@ void actionArduinoCommand(void)
 		case 'M':			//Motor amperage measurement - cmd-arg holds motor number and msg holds amps
 
             //ensure we dont have a null pointer or out-of-bounds motor number and cause a code exception
-			if(cmd_msg != NULL && cmd_arg >0 && cmd_arg <7)
+            int idx = strtol(cmd_arg,NULL,10);
+
+			if(cmd_msg != NULL && idx >=0 && idx <=5)  //check for bounds of array index
             {
-                g_LC_ControlState.motorAmps[cmd_arg-1] = atoi(cmd_msg);     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[idx] = strtol(cmd_msg,NULL,10);     //array is zero based , 0-5 for each motor
             }
 			break;
 		case 'V':			//Voltage - battery voltage - cmd-arg will always be 1, msg holds volts
@@ -280,7 +291,7 @@ void actionArduinoCommand(void)
 
 			if(cmd_msg != NULL)
             {
-                g_LC_ControlState.vbat = atoi(cmd_msg);     //get the vbat in milliamps
+                 g_LC_ControlState.vbat = strtol(cmd_msg,NULL,10);     //get the vbat in milliamps
                 if (g_LC_ControlState.vbat != 0)
                     g_LC_ControlState.vbat = g_LC_ControlState.vbat/10; //get volts from tenths of a volt
             }
@@ -292,7 +303,7 @@ void actionArduinoCommand(void)
 
 
 }
-
+#endif // linux
 /*********************************************
  *
  * initGlobals

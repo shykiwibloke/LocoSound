@@ -149,8 +149,6 @@ int readSerial(char* cmdbuf,const int MaxBytes)
 	char inChar = 0;
 	int rtn = 0;
 
-    memset(cmdbuf,0,MaxBytes);         //explicitly clear the supplied buffer so no danger of doing same command twice
-
  	//----- CHECK FOR ANY RX BYTES -----
 	if (m_serialhandle != -1)
 	{

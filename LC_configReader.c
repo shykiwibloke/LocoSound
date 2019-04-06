@@ -175,6 +175,6 @@ int getConfigVal(const char * label)
     if (str == NULL)
         return 0;
     else
-        return atoi(str);
+        return strtol(str,NULL,10);
 
 }
