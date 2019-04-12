@@ -79,8 +79,9 @@ int main(int argc, char *argv[])
 
 	}  //End of Main Loop
 
-	closeProgram();									//Go clean up
-	system ("sudo shutdown -h now");
+	closeProgram();         //Go clean up
+	if(quit==2)
+        system ("sudo shutdown -h now");
 	return 0;
 }
 
@@ -199,7 +200,7 @@ int handleKey(SDL_KeyboardEvent key) {
 
 		case SDLK_x:  //quit application
 		    fprintf(stderr,"Quitting Application & shutting down computer\n");
-			rtn = 1;
+			rtn = 2;
             break;
 
 		case SDLK_m:  //change mode
@@ -245,6 +246,7 @@ void actionArduinoCommand(void)
     char		cmd_class;
 	char		cmd_arg;
 	char*	    cmd_msg;
+	int         idx;
 	SDL_Event   event;
 
 
@@ -279,7 +281,7 @@ void actionArduinoCommand(void)
 		case 'M':			//Motor amperage measurement - cmd-arg holds motor number and msg holds amps
 
             //ensure we dont have a null pointer or out-of-bounds motor number and cause a code exception
-            int idx = strtol(cmd_arg,NULL,10);
+            idx = strtol(cmd_arg,NULL,10);
 
 			if(cmd_msg != NULL && idx >=0 && idx <=5)  //check for bounds of array index
             {
