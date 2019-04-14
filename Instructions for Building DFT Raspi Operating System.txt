@@ -1,0 +1,15 @@
+  Instructions for Building DFT Raspi Operating System
+   
+1. Create SD Card with Raspian Operating System (Desktop Without the added Applications Preferred)
+2. Insert in Loco and run until updated
+3. Enable VNC Server and access remotely  (Remember to use ALT-leftClick to get to bottom of screen
+4. Alter config.txt.  (sudo nano /boot/config.txt)
+a. Turn off Overscan
+b. Alter screen resolution to 1200 x 768 (to match touch screen)
+c. NB: This step can be done from a PC on the boot partition prior to inserting in the Pi.
+5. Now install the necessary packages:
+a. sudo apt-get install codeblocks
+b. sudo apt-get install libsdl2-dev
+c. sudo apt-get install libsdl2-mixer-dev
+d. sudo apt-get install libsdl2-ttf-dev
+6. If HIFI Berry Soundcard fitted – go to Raspi Preferences – Audio and select it as the default.
