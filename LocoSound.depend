@@ -562,7 +562,7 @@
 1506919917 source:/home/chrisd/git-repos/locosound/LC_utilities.c
 	"LC_utilities.h"
 
-1545432502 source:c:\users\chris\documents\github\locosound\lc_serial.c
+1555297621 source:c:\users\chris\documents\github\locosound\lc_serial.c
 	"LC_serial.h"
 
 1533004853 c:\users\chris\documents\github\locosound\lc_serial.h
@@ -596,7 +596,7 @@
 1533004853 c:\users\chris\documents\github\locosound\lc_globals.h
 	<stdbool.h>
 
-1533008453 source:c:\users\chris\documents\github\locosound\lc_configreader.c
+1555297491 source:c:\users\chris\documents\github\locosound\lc_configreader.c
 	"LC_configReader.h"
 
 1533004853 source:c:\users\chris\documents\github\locosound\lc_mousehandler.c
@@ -613,10 +613,10 @@
 1533004853 source:c:\users\chris\documents\github\locosound\lc_utilities.c
 	"LC_utilities.h"
 
-1546209961 source:c:\users\chris\documents\github\locosound\lc_main.c
+1555206715 source:c:\users\chris\documents\github\locosound\lc_main.c
 	"LC_main.h"
 
-1545274864 c:\users\chris\documents\github\locosound\lc_main.h
+1545271264 c:\users\chris\documents\github\locosound\lc_main.h
 	<stdbool.h>
 	<errno.h>
 	<stdio.h>
@@ -634,7 +634,7 @@
 	"LC_configReader.h"
 	"LC_serial.h"
 
-1545513931 c:\users\chris\documents\github\locosound\lc_screen.h
+1555298007 c:\users\chris\documents\github\locosound\lc_screen.h
 	<stdbool.h>
 	<stdio.h>
 	<stdlib.h>

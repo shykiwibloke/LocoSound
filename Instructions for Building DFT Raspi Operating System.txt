@@ -13,3 +13,22 @@ b. sudo apt-get install libsdl2-dev
 c. sudo apt-get install libsdl2-mixer-dev
 d. sudo apt-get install libsdl2-ttf-dev
 6. If HIFI Berry Soundcard fitted – go to Raspi Preferences – Audio and select it as the default.
+7. Now get the latest LocoSound Project code.
+a. From home folder – create ‘code’ folder (optional – I prefer to put all my projects in the folder /home/pi/code/)
+b. Open terminal window into the folder you wish to place the code directory structure
+c. Use this command to copy the Git repo:
+i. git clone https://github.com/shykiwibloke/LocoSound.git
+d. open the project file in CodeBlocks (hint – navigate to LocoSound directory and double-click ‘LocoSound.cbp’ and CodeBlocks will open the whole project properly)
+e. Select ‘Release’ version at the top and compile.
+f. Now you will have to copy the sound files AND the graphic files into the ./bin/release subdirectory
+g. Now copy the ‘LocoSound.conf’ from the source directory to the /bin/release subdirectory. (e.g.’/home/pi/code/LocoSound/bin/release’)
+i. Check the parameters for the terminal connection to the Arduino or other controlling device you are using.
+ii. Check the parameters for the screen
+iii. Check the sound volumes of the various sounds in the config file to your preferences.
+h. If all ok – set up the autostart by getting the pi’s autostart to call the file ‘start_locosound’ which is located in the source directory /home/pi/code/LocoSound
+i.  Navigate to/create the directory /home/pi/.config/lxsession/LXDE-pi
+ii. Copy the source file ‘locosound autostart’ to this directory and rename it ‘autostart’ 
+iii. Check the file ‘/home/pi/.config/lxsession/LXDE-pi/autostart’ has execute permission.
+iv. Check the file ‘/home/pi/code/LocoSound/start_locosound’ has execute permission
+v. Check the file ‘/home/pi/code/LocoSound/bin/Release/LocoSound’ has execute permission
+i. 

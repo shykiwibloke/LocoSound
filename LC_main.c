@@ -253,7 +253,7 @@ void actionArduinoCommand(void)
     len = readSerial(cmd_str,CMD_MAX_MSG_LEN-1); //Service Serial Port. Request one less chars than the buffer can hold
                                                 //to guarantee the last char is always a null for terminating argument strings
 
-	if(len < 5 || len != (int) strlen(cmd_str) )    //check bounds of expected message - may not be all here yet not not properly terminated
+	if(len < 5) //check bounds of expected message - may not be all here yet not not properly terminated
 	{
 		return;
 	}
@@ -281,7 +281,7 @@ void actionArduinoCommand(void)
 		case 'M':			//Motor amperage measurement - cmd-arg holds motor number and msg holds amps
 
             //ensure we dont have a null pointer or out-of-bounds motor number and cause a code exception
-            idx = strtol(cmd_arg,NULL,10);
+            idx = strtol(&cmd_arg,NULL,10);
 
 			if(cmd_msg != NULL && idx >=0 && idx <=5)  //check for bounds of array index
             {

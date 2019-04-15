@@ -74,14 +74,14 @@ int initSerial()
 	//	PARODD - Odd parity (else even)
 	struct termios options;
 	tcgetattr(m_serialhandle, &options);
-	options.c_cflag = B115200 | CS8 | CLOCAL | CREAD;		//<Set baud rate
+	options.c_cflag = B115200 | CS8 | CLOCAL | CREAD;		//<Set baud rate to a default high value
 	options.c_cflag &= ~CRTSCTS; //disable hw flow control
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); //disable flow control	options.c_iflag = IGNPAR;
 	options.c_oflag = 0;
 	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); //raw mode
 	options.c_cc[VMIN] = 1;
 	options.c_cc[VTIME] = 0;
-	cfsetspeed(&options, getConfigSpeed());
+	cfsetspeed(&options, getConfigSpeed());    //Get the proper baud rate
 	//SDL_Delay(2000);                        //workaround for USB flush issue
 	tcflush(m_serialhandle, TCIFLUSH);
 	tcsetattr(m_serialhandle, TCSANOW, &options);

@@ -17,6 +17,10 @@ done
 
 # Start the application now the timer has expired
 printf "\n\rStarting LocoSound..."
-# Alter the next line to point to wherever you have put the locosound application. I keep mine on the desktop.
+# Alter the next line to point to wherever you have put the locosound application. 
+#I keep mine in the Codeblocks created bin subdirectory at compile time
 
-/home/pi/Desktop/LocoSound/locosound
+#Force change to code directory
+cd /home/pi/code/LocoSound/bin/Release/
+#start the application
+./LocoSound
