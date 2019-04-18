@@ -25,7 +25,9 @@
  *
  *********************************************/
 
+/* Depricated: Data file paths now set in configReader
 char					g_DataFilePath[100];   //Global data file path - defaults to current directory or overrided by commandline option
+*/
 char*					g_ProgramPath;		   //System Path this application and its files are running from
 
 
@@ -35,7 +37,7 @@ char*					g_ProgramPath;		   //System Path this application and its files are ru
  *
  *****************************************/
 
-int  setDataFilePath(void);
+int  setFilePath(char *);
 int  setProgramFilePath(void);
 void iniFilePaths(void);
 char *LTrim(char *s);

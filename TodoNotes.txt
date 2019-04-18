@@ -1,9 +1,14 @@
 
 This is a series of notes to remind me what I was going to do next
 
-On Raspi - test Alsa/Pulse with Bluetooth or USB properly
-Test Motor Amerage output - why Graph is not working
-
-In This code
-
-Buttons - Engine Start / Stop  Rest (to going), Screen swap to messages / config / graphics
+1) Test Debug mode - need a log file output - repurpose -P flag or collapse so -d also specifies file seed (never overwrite logs)
+2) Amperage sort of working - gets stuck - determine if motors need wiring reversed so all the same. Does amps work in reverse?
+3) Need two volume controls - one for overall engine, one for horn
+4) Spread dryer sound over time more
+5) Make amp text bigger - think about dumping graphs
+6) Change serial speed to 115200 (raspi)
+7) Change serial speed to 19200 (motor controllers)
+8) DONE - Change SetFileDataPath away from cmd-line to config file only
+9) DONE - Add Baby filePath or hardwire to subdirs for sounds and graphics
+10) DONE - If Config file not found in program directory - create one (otherwise user does not know the default values...)
+11) Harmonize the addmessageline() and fprintf to stderr calls all over the codebase.

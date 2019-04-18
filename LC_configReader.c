@@ -12,13 +12,16 @@
 //the main configuration store - set it to defaults so if something missed in config file it does not stop the system
 config_t m_config[] =
 	{
-		{"SCREEN_WIDTH", "1024" },
-		{"SCREEN_HEIGHT", "600" },
+		{"SCREEN_WIDTH", "1024"},
+		{"SCREEN_HEIGHT", "600"},
 		{"SCREEN_MAX","NO"},
-		{"FONT_FILE","FreeSans.ttf" },
-		{"LOCO_NAME","DFB 7361" },
-		{"BAUD_RATE","9600" },
-		{"SERIAL_DEVICE","/dev/ttyAMA0" },
+		{"FONT_FILE","FreeSans.ttf"},
+		{"LOCO_NAME","NOT SET"},
+		{"BAUD_RATE","115200"},
+		{"SERIAL_DEVICE","/dev/ttyAMA0"},
+		{"SOUND_FILE_PATH","../../Sounds"},
+		{"GRAPHIC_FILE_PATH","../../Graphics"},
+		{"LOG_FILE_PATH","./Logs"},
 		{"VOL_ENGINE_LEFT","127"},
         {"VOL_ENGINE_RIGHT","127"},
         {"VOL_DYNAMIC_LEFT","127"},
@@ -54,7 +57,7 @@ config_t m_config[] =
 
 	};
 
-const int m_CONFIG_SIZE = 39;           //alter this if you add any more config lines above
+const int m_CONFIG_SIZE = 42;           //alter this if you add any more config lines above
 
 int loadConfig()
 {
@@ -62,12 +65,16 @@ int loadConfig()
 	//Opens the user config file and loads in any values as an overlay to the defaults listed above
 	//This way - if a user forgets to insert or misspells a value - we fall back on the default value
 
-	setDataFilePath();		//config file must be in the data file directory
+	setProgramFilePath();		//config file must be in the program file directory
 
     FILE *file = fopen (CONFIG_FILE_NAME, "r");
 
-	if (file != NULL)
+	if (file == NULL)
 	{
+	    saveConfig();   //generate a config file for the user in the directory where the program is run from
+	}
+	else
+    {
 
 
 		char line[MAX_BUF] = {0};
@@ -110,6 +117,38 @@ int loadConfig()
     return 0;
 }
 
+/****************************************
+*
+*  saveConfig
+*
+*****************************************/
+int saveConfig(void)
+{
+    setProgramFilePath();		//config file must be in the program file directory
+
+    FILE *file = fopen (CONFIG_FILE_NAME, "w");
+
+	if (file == NULL)
+	{
+        fprintf(stderr,"WARNING: Cannot write configuration file into program directory\n");
+        return 1;
+	}
+	else
+    {
+
+        fprintf(file,"# Loco Sound Configuration file\n\n");
+        int f = 0;
+
+        while(f++ < m_CONFIG_SIZE)
+        {
+            fprintf(file,"%s=%s\n",m_config[f].label,m_config[f].value);   //write out the value pairs
+
+        } // End while
+		fclose(file);
+
+	} // End of file
+	return 0;
+}
 /****************************************
 *
 *  putConfigVal

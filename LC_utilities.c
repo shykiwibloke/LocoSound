@@ -14,16 +14,18 @@
  * setDataFilePath: Sets Current Directory to the datafiles
  *
  *********************************************/
-int setDataFilePath(void)
-{
 
-	if(chdir(g_DataFilePath) != 0)    //Change the current working directory to where we can find the sound samples
+int setFilePath(char *path)
+{
+    setProgramFilePath();   //file path could be relative to program path so set that first
+	if(chdir(path) != 0)    //Change the current working directory to where we can find the sound samples
 	{
-		fprintf(stderr,"Invalid or protected file path specified with '-p' option: '%s', %s\n", g_DataFilePath, SDL_GetError());
+		fprintf(stderr,"Invalid or protected file path argument: '%s'\n", path);
 		return 1;
 	}
 	return 0;
 }
+
 /*********************************************
  *
  * setProgramFilePath: Sets Current Directory to the Programfiles
@@ -39,7 +41,7 @@ int setProgramFilePath(void)
         }
     }
 
-    fprintf(stderr,"Invalid or protected file path retrieved as Program File Path: %s\n", g_DataFilePath);
+    fprintf(stderr,"Invalid or protected Program File Path: %s\n", g_ProgramPath);
     return 1;
 }
 
@@ -55,7 +57,9 @@ void iniFilePaths(void)
     	//set defaults
     g_ProgramPath = SDL_GetBasePath();
     setProgramFilePath();                   //need to explicitly set the path for some env such as windows
-	strncpy(g_DataFilePath,g_ProgramPath,sizeof(g_DataFilePath));            //default the data path
+/* Depricated - Data files set by configReader
+	strncpy(g_DataFilePath,g_ProgramPath,sizeof(g_DataFilePath));            //default the data path to Program path
+*/
 }
 
 

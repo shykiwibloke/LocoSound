@@ -632,12 +632,12 @@ int initAudio(void)
     }
 
     const SDL_version *link_version=Mix_Linked_Version();
-    fprintf(stderr,"Successfully Opened with SDL_mixer version %d.%d.%d\n",link_version->major, link_version->minor, link_version->patch);
+    fprintf(stderr,"SDL_mixer version %d.%d.%d\n",link_version->major, link_version->minor, link_version->patch);
 
 	Mix_AllocateChannels(LC_MAX_CHANNELS);
 
 
-	if (setDataFilePath()){
+	if (setFilePath(getConfigStr("SOUND_FILE_PATH"))){
 		return 1;
 	}
 

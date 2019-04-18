@@ -29,6 +29,7 @@ typedef struct {
 
 //Function Prototypes
 int loadConfig(void);
+int saveConfig(void);
 void putConfigVal(const char * label, const char * value);
 char * getConfigStr(const char * label);
 int getConfigVal(const char * label);

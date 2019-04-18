@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
 		}
 
 		soundService();								//Service Sound Subsystem - very frequently!
-		SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
+//Depricated - possibly helped cover a prev fixed bug
+	//	SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
                                                     //Found this to stabilize SDL_mixer
 
 // NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
@@ -286,6 +287,7 @@ void actionArduinoCommand(void)
 			if(cmd_msg != NULL && idx >=0 && idx <=5)  //check for bounds of array index
             {
                 g_LC_ControlState.motorAmps[idx] = strtol(cmd_msg,NULL,10);     //array is zero based , 0-5 for each motor
+                //todo - output debug log entry here showing raw received value
             }
 			break;
 		case 'V':			//Voltage - battery voltage - cmd-arg will always be 1, msg holds volts
@@ -347,7 +349,8 @@ void initGlobals()
  *********************************************/
 void initModules(void)
 {
-    addMessageLine("Winter Creek Loco Sound (c) 2017 Initializing.....");
+    addMessageLine("Winter Creek Loco Sound (c) 2017-2019 Initializing.....");
+    fprintf(stderr,"Winter Creek Loco Sound (c) 2017-2019 Initializing.....\n");
 
     #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
@@ -362,8 +365,9 @@ void initModules(void)
     SDL_version linked;
     SDL_GetVersion(&linked);
 
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d\n",linked.major, linked.minor, linked.patch);
     addMessageLine(m_msgTempLine);
+    fprintf(stderr,m_msgTempLine);
 
 	atexit(closeProgram);  //setup the closedown callback
 
@@ -434,17 +438,21 @@ void getCmdLineOptions(int argc, char * const argv[])
 				g_Debug = true;
 				fprintf(stderr,"Debug Option Set\n");
 				break;
+/* Depricated P for data file path - moved to config
 			case 'p':           //path to Data files specified
 				strcpy(g_DataFilePath,optarg);
 				fprintf (stderr, "Data filepath set to %s.\n", g_DataFilePath);
 				break;
+*/
 			case 'h':
-				fprintf(stdout,"Usage: -d sets debug mode, -p <pathname> sets the path for the data files");
+				fprintf(stdout,"Usage: -d sets debug mode"); //Depricated: , -p <pathname> sets the path for the data files");
 				break;
 			case '?':
+/* Depricated - P option no longer needed
 				if (optopt == 'p')
 					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 				else
+*/
 					fprintf (stderr, "Unknown option -%c ignored\n", optopt);
 				break;
 

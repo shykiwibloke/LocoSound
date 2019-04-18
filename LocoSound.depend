@@ -562,7 +562,7 @@
 1506919917 source:/home/chrisd/git-repos/locosound/LC_utilities.c
 	"LC_utilities.h"
 
-1555297621 source:c:\users\chris\documents\github\locosound\lc_serial.c
+1555553423 source:c:\users\chris\documents\github\locosound\lc_serial.c
 	"LC_serial.h"
 
 1533004853 c:\users\chris\documents\github\locosound\lc_serial.h
@@ -576,14 +576,14 @@
 	<sys/ioctl.h>
 	"LC_configReader.h"
 
-1533004853 c:\users\chris\documents\github\locosound\lc_configreader.h
+1555510804 c:\users\chris\documents\github\locosound\lc_configreader.h
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<stdbool.h>
 	"LC_utilities.h"
 
-1533004853 c:\users\chris\documents\github\locosound\lc_utilities.h
+1555507251 c:\users\chris\documents\github\locosound\lc_utilities.h
 	<stdbool.h>
 	<stdio.h>
 	<stdlib.h>
@@ -596,7 +596,7 @@
 1533004853 c:\users\chris\documents\github\locosound\lc_globals.h
 	<stdbool.h>
 
-1555297491 source:c:\users\chris\documents\github\locosound\lc_configreader.c
+1555553014 source:c:\users\chris\documents\github\locosound\lc_configreader.c
 	"LC_configReader.h"
 
 1533004853 source:c:\users\chris\documents\github\locosound\lc_mousehandler.c
@@ -610,10 +610,10 @@
 	<SDL2/SDL.h>
 	"LC_globals.h"
 
-1533004853 source:c:\users\chris\documents\github\locosound\lc_utilities.c
+1555507797 source:c:\users\chris\documents\github\locosound\lc_utilities.c
 	"LC_utilities.h"
 
-1555206715 source:c:\users\chris\documents\github\locosound\lc_main.c
+1555553613 source:c:\users\chris\documents\github\locosound\lc_main.c
 	"LC_main.h"
 
 1545271264 c:\users\chris\documents\github\locosound\lc_main.h
@@ -634,7 +634,7 @@
 	"LC_configReader.h"
 	"LC_serial.h"
 
-1555298007 c:\users\chris\documents\github\locosound\lc_screen.h
+1555456213 c:\users\chris\documents\github\locosound\lc_screen.h
 	<stdbool.h>
 	<stdio.h>
 	<stdlib.h>
@@ -659,9 +659,9 @@
 	"LC_configReader.h"
 	"LC_screen.h"
 
-1554063791 source:c:\users\chris\documents\github\locosound\lc_screen.c
+1555553812 source:c:\users\chris\documents\github\locosound\lc_screen.c
 	"LC_screen.h"
 
-1533004853 source:c:\users\chris\documents\github\locosound\lc_sound.c
+1555553819 source:c:\users\chris\documents\github\locosound\lc_sound.c
 	"LC_sound.h"
 

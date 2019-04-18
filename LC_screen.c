@@ -133,7 +133,7 @@ int initScreen()
         }
 
         const SDL_version *link_version=TTF_Linked_Version();
-        printf("SDL_ttf opened OK version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
+        printf("SDL_ttf version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
 
         //Now open the fonts we need
         m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), MSG_RECT_FONT_HEIGHT); //this opens a font style and sets a point size
@@ -365,7 +365,7 @@ void updateMotorGraphSet(void)
     {
         //are we generating (green) or consuming (red)?
         if(g_LC_ControlState.motorAmps[f] < 0)
-            updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_LIGHT_GREEN);
+            updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_DARK_GREEN);
         else
             updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_RED);
 
@@ -566,7 +566,7 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
     //	SDL_Surface* optimizedSurface = NULL;
     SDL_Texture* newTexture = NULL;
 
-    setDataFilePath();   //change directory to the data file path
+    setFilePath(getConfigStr("GRAPHIC_FILE_PATH"));   //change directory to the data file path
 
     SDL_Surface* loadedSurface = SDL_LoadBMP(fileName);
 

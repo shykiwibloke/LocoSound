@@ -25,7 +25,7 @@
 // Font constants
 //x,y,w,h
 #ifdef linux
-    #define TTF_VERT_OFFSET -6
+    #define TTF_VERT_OFFSET -11         //to match7" touch screen configured as 1200 x 768 pixels
 #endif // linux
 #ifdef WIN32
     #define TTF_VERT_OFFSET -6          //windows seems to offset the font downwards by a few pixels compared to Linux - compensate
