@@ -28,14 +28,16 @@ int main(int argc, char *argv[])
 	getCmdLineOptions(argc, argv);  //parse and process any supplied command line options
 	loadConfig();					//load the users config file (used by many modules)
 	initGlobals();					//Init the applications global variables
+	openLogFile();                  //Open the log file if debug option set
 	initModules();					//Init the SDL systems we rely on for machine portability
 
 	if(g_Debug)
-        addMessageLine("Debug option set by command line");
+        addMessageLine("Debug option Set. Log File created.");
 
 	//all ready to begin the main loop
 
-	addMessageLine("Initialization complete. Press 'F1' for a list of keyboard commands");
+	addMessageLine("Application initialization completed OK");
+    addMessageLine("Press 'F1' for a list of keyboard commands");
 	//Main Loop
 	while(!quit) {
 
@@ -58,9 +60,6 @@ int main(int argc, char *argv[])
 		}
 
 		soundService();								//Service Sound Subsystem - very frequently!
-//Depricated - possibly helped cover a prev fixed bug
-	//	SDL_Delay(10);								//relinquish cpu for 10ms to allow other SDL threads to execute.
-                                                    //Found this to stabilize SDL_mixer
 
 // NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
 //   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
@@ -115,10 +114,10 @@ int handleKey(SDL_KeyboardEvent key) {
 			}
 			if (g_LC_ControlState.ThrottleActive) {
 				g_LC_ControlState.ThrottlePos = (int)key.keysym.sym-48;
-				fprintf(stderr, "Setting Throttle to %d\n", g_LC_ControlState.ThrottlePos);
+				logInt("Setting Throttle to ", g_LC_ControlState.ThrottlePos);
 			} else if (g_LC_ControlState.DynBrakeActive) {
 				g_LC_ControlState.DynBrakePos = (int)key.keysym.sym-48;
-				fprintf(stderr, "Setting Dynamic Brake to: %d\n",g_LC_ControlState.DynBrakePos);
+				logInt( "Setting Dynamic Brake to ",g_LC_ControlState.DynBrakePos);
 			} else {
 				addMessageLine("Error: Cannot set notch. Throttle or Dynamic not set");
 			}
@@ -134,13 +133,13 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 		case SDLK_e:
 			g_LC_ControlState.Emergency = true;
-			fprintf(stderr, "Emergency!\n");
+			addMessageLine("Emergency!");
 			break;
 
 		case SDLK_f:
 			g_LC_ControlState.DirReverse = false;
 			g_LC_ControlState.DirForward = true;
-			fprintf(stderr, "Direction set to Forward\n");
+			logMessage("Direction set to Forward",true);
 			break;
 
 		case SDLK_h:
@@ -162,13 +161,13 @@ int handleKey(SDL_KeyboardEvent key) {
 		case SDLK_n:
 			g_LC_ControlState.DirReverse = false;
 			g_LC_ControlState.DirForward = false;
-			fprintf(stderr, "Direction set to Neutral\n");
+			logMessage("Direction set to Neutral",true);
 			break;
 
 		case SDLK_r:
 			g_LC_ControlState.DirForward = false;
 			g_LC_ControlState.DirReverse = true;
-			fprintf(stderr, "Direction set to Reverse\n");
+			logMessage("Direction set to Reverse",true);
 			break;
 
 		case SDLK_s:
@@ -181,6 +180,7 @@ int handleKey(SDL_KeyboardEvent key) {
                 addMessageLine("Starting Prime Mover...");
 			} else {
                 g_LC_ControlState.ThrottlePos = -1;
+                addMessageLine("Stopping Prime Mover...");
 			}
 			break;
 
@@ -195,12 +195,12 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 
 		case SDLK_q:  //quit application
-		    fprintf(stderr,"Quitting Application at user request\n");
+		    logMessage("Quitting Application at user request",true);
 			rtn = 1;
             break;
 
 		case SDLK_x:  //quit application
-		    fprintf(stderr,"Quitting Application & shutting down computer\n");
+		    logMessage("Quitting Application & shutting down computer",true);
 			rtn = 2;
             break;
 
@@ -209,7 +209,6 @@ int handleKey(SDL_KeyboardEvent key) {
             break;
 
 		case SDLK_F1:
-          //  snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"",);
             addMessageLine(" ");
             addMessageLine("Available Commands List: (all lower case)");
             addMessageLine("-----------------------------------------");
@@ -225,7 +224,7 @@ int handleKey(SDL_KeyboardEvent key) {
             addMessageLine("-----------------------------------------");
             break;
 		default:
-		    fprintf(stderr, "Unknown command '%c' received \n",key.keysym.sym);
+		    logInt("Unknown command received ",key.keysym.sym);
 			break;
 
 	}
@@ -267,13 +266,12 @@ void actionArduinoCommand(void)
 
 	switch(cmd_class)
 	{
-		case 'L':			//Log message received - pass straight on to std err (which can be redirected)
-		    //TODO - examine log level and decide if should be logged based on g_Debug setting
-			fprintf(stderr,"Log: %c: %s\n",cmd_arg, cmd_msg);
+		case 'L':			//Log message received - pass raw input straight through
+			logMessage(cmd_str);
 			break;
 
 		case 'S':			//Sound command
-			fprintf(stderr,"Sound: %c\n",cmd_arg);
+			logVariable("Sound: ",cmd_arg);
 			event.type = SDL_KEYDOWN;
 			event.key.keysym.sym = cmd_arg;
 			SDL_PushEvent(&event);
@@ -287,21 +285,26 @@ void actionArduinoCommand(void)
 			if(cmd_msg != NULL && idx >=0 && idx <=5)  //check for bounds of array index
             {
                 g_LC_ControlState.motorAmps[idx] = strtol(cmd_msg,NULL,10);     //array is zero based , 0-5 for each motor
-                //todo - output debug log entry here showing raw received value
+
+                //output debug log entry here showing raw received value
+                logVariable("Motor",idx);
+                logVariable("Amps",cmd_msg);
             }
 			break;
 		case 'V':			//Voltage - battery voltage - cmd-arg will always be 1, msg holds volts
             //ensure we dont have a null pointer
-
 			if(cmd_msg != NULL)
             {
-                 g_LC_ControlState.vbat = strtol(cmd_msg,NULL,10);     //get the vbat in milliamps
+                g_LC_ControlState.vbat = strtol(cmd_msg,NULL,10);     //get the vbat in millivolts
                 if (g_LC_ControlState.vbat != 0)
                     g_LC_ControlState.vbat = g_LC_ControlState.vbat/10; //get volts from tenths of a volt
+                    logVariable("Battery Voltage",g_LC_ControlState.vbat);
             }
 			break;
 		default:
-			fprintf(stderr, "Unrecognised command string: %s \n", cmd_str);
+
+			logMessage("Unrecognised command:");
+			logMessage(cmd_str);
 			break;
 	}
 
@@ -349,8 +352,7 @@ void initGlobals()
  *********************************************/
 void initModules(void)
 {
-    addMessageLine("Winter Creek Loco Sound (c) 2017-2019 Initializing.....");
-    fprintf(stderr,"Winter Creek Loco Sound (c) 2017-2019 Initializing.....\n");
+    addMessageLine("Winter Creek Loco Sound (c) 2017-2019 Initializing...");
 
     #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
@@ -365,7 +367,7 @@ void initModules(void)
     SDL_version linked;
     SDL_GetVersion(&linked);
 
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d\n",linked.major, linked.minor, linked.patch);
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
     addMessageLine(m_msgTempLine);
     fprintf(stderr,m_msgTempLine);
 
@@ -385,21 +387,21 @@ void initModules(void)
 		exit(EXIT_FAILURE);    //error setting up
 	}
 
-    addMessageLine("Audio Generator & Mixer Initialized....OK");
+    addMessageLine("Audio Mixer Initialized....OK");
 
 
 #ifdef linux
 	if (initSerial() != 0)    //not strictly SDL but safe place to put it
 	{
+        addMessageLine("Control stand comms failed to start");
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Loco Control Stand Comms Failed to start",m_mainWindow);
 		fprintf(stderr,"Warning: Error initializing comms to Loco Control Stand. Keyboard Control Only Mode\n");
 	}
-    addMessageLine("Comms Initialized....OK");
+    addMessageLine("Control stand comms Initialized....OK");
 
 #endif
 #ifdef _WIN32
-        addMessageLine("Comms currently disabled for windows version");
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"WARNING","Windows version does not support comms. Keyboard mode now active",m_mainWindow);
+        addMessageLine("Comms currently disabled for windows version. Use keyboard");
 
 #endif // _WIN32
 
@@ -434,25 +436,14 @@ void getCmdLineOptions(int argc, char * const argv[])
 	//now see what overrides the user has sent
 	while ((ich = getopt (argc, argv, "hds:p:")) != EOF) {
 		switch (ich) {
-			case 'd':           //debug flag
+			case 'd':           //debug flag - if set forces app to create log files
 				g_Debug = true;
 				fprintf(stderr,"Debug Option Set\n");
 				break;
-/* Depricated P for data file path - moved to config
-			case 'p':           //path to Data files specified
-				strcpy(g_DataFilePath,optarg);
-				fprintf (stderr, "Data filepath set to %s.\n", g_DataFilePath);
-				break;
-*/
 			case 'h':
-				fprintf(stdout,"Usage: -d sets debug mode"); //Depricated: , -p <pathname> sets the path for the data files");
+				fprintf(stdout,"Usage: -d sets debug mode and creates log files"); //Depricated: , -p <pathname> sets the path for the data files");
 				break;
 			case '?':
-/* Depricated - P option no longer needed
-				if (optopt == 'p')
-					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-				else
-*/
 					fprintf (stderr, "Unknown option -%c ignored\n", optopt);
 				break;
 

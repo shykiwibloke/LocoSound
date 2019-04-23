@@ -15,7 +15,7 @@
  *
  *********************************************/
 
-int setFilePath(const char *path, bool forceCreate)
+int setFilePath(char *path, bool forceCreate)
 {
     setProgramFilePath();   //file path could be relative to program path so set that first
 
@@ -80,6 +80,8 @@ void iniFilePaths(void)
 
 void openLogFile(void)
 {
+    char filename[] = "LOGXXXXXX";
+
     if(g_Debug)
     {
         if (setFilePath(getConfigStr("LOG_FILE_PATH"),true))
@@ -88,12 +90,11 @@ void openLogFile(void)
             return;
         }
 
-        rename("Log.txt","Log_OLD.txt");            //keep one old log file about dont care if not already exist - try
-        g_LogFileHandle = fopen("Log.txt","w");
+        g_LogFileHandle = mktemp(filename);
 
         atexit(closeLogFile);
 
-        logMessage("Log File Created",true);
+        logMessage("Log File Created\n");
 	}
 
 }
@@ -106,7 +107,7 @@ void openLogFile(void)
 
 void closeLogFile(void)
 {
-   logMessage("Log File Closed",true);
+   logMessage("Log File Closed\n");
    fclose(g_LogFileHandle);
 }
 
@@ -116,52 +117,18 @@ void closeLogFile(void)
  *
  *********************************************/
 
-void logMessage(const char * msg,bool AddNewline)
+void logMessage(char * msg)
 {
  if(g_LogFileHandle)
  {
-     /* get seconds since the Epoch */
-     time_t secs = time(0);
+     time_t ltime;
 
-     /* convert to localtime */
-     struct tm *ltime = localtime(&secs);
+     ltime=time(NULL); /* get current cal time */
 
-    if (AddNewline)
-        fprintf(g_LogFileHandle,"%02d:%02d:%02d - %s\n", ltime->tm_hour, ltime->tm_min, ltime->tm_sec,msg);
-     else
-        fprintf(g_LogFileHandle,"%02d:%02d:%02d - %s", ltime->tm_hour, ltime->tm_min, ltime->tm_sec,msg);
+     fprintf(g_LogFileHandle,"%s : %s",asctime( localtime(&ltime)),msg);
  }
 }
 
-/*********************************************
- *
- * Log Integer Variable and its associated message into the log file
- *
- *********************************************/
-
-void logInt(const char *msg, const int i)
-{
-    if(g_LogFileHandle)
-    {
-        logMessage(msg,false);
-        fprintf(g_LogFileHandle,"%d\n",i);
-    }
-}
-
-/*********************************************
- *
- * Log String Variable and its associated message into the log file
- *
- *********************************************/
-
-void logString(const char *msg, const char *s)
-{
-    if(g_LogFileHandle)
-    {
-        logMessage(msg,false);
-        fprintf(g_LogFileHandle,"%s\n",s);
-    }
-}
 /*********************************************
  *
  * string trim utilities LTrim, RTrim and Trim

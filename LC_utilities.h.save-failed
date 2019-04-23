@@ -18,8 +18,6 @@
 #include <ctype.h>
 #include <SDL2/SDL.h>
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
-#include "LC_configReader.h"
-#include <time.h>
 
 /*********************************************
  *
@@ -28,7 +26,7 @@
  *********************************************/
 
 char*					g_ProgramPath;		   //System Path this application and its files are running from
-FILE                    *g_LogFileHandle;       //The file handle for this sessions log file
+
 
 /*****************************************
  *
@@ -36,14 +34,9 @@ FILE                    *g_LogFileHandle;       //The file handle for this sessi
  *
  *****************************************/
 
-int  setFilePath(const char *,bool forceCreate);
+int  setFilePath(char *);
 int  setProgramFilePath(void);
 void iniFilePaths(void);
-void openLogFile(void);
-void closeLogFile(void);
-void logMessage(const char *,bool AddNewline);
-void logInt(const char *, const int);
-void logString(const char *, const char *);
 char *LTrim(char *s);
 char *RTrim(char *s);
 char *Trim(char *s);

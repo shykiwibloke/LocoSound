@@ -16,9 +16,9 @@ config_t m_config[] =
 		{"SCREEN_HEIGHT", "600"},
 		{"SCREEN_MAX","NO"},
 		{"FONT_FILE","FreeSans.ttf"},
-		{"LOCO_NAME","NOT SET"},
+		{"LOCO_NAME","?"},
 		{"BAUD_RATE","115200"},
-		{"SERIAL_DEVICE","/dev/ttyAMA0"},
+		{"SERIAL_DEVICE","/dev/ttyACM0"},
 		{"SOUND_FILE_PATH","../../Sounds"},
 		{"GRAPHIC_FILE_PATH","../../Graphics"},
 		{"LOG_FILE_PATH","./Logs"},
@@ -98,6 +98,8 @@ int loadConfig()
 				*equ = 0;
 				//remove leading and trailing whitespace from the label and value and store them away
 				s = Trim(line);
+                logString("Loading Config Line: ",s);
+
 				if(s)
                     memcpy((char*)label,s,strlen(s));
 				equ++;
@@ -136,14 +138,14 @@ int saveConfig(void)
 	else
     {
 
-        fprintf(file,"# Loco Sound Configuration file\n\n");
+        fprintf(file,"#\n# Loco Sound Configuration file\n#\n");
         int f = 0;
 
-        while(f++ < m_CONFIG_SIZE)
-        {
+        do {
             fprintf(file,"%s=%s\n",m_config[f].label,m_config[f].value);   //write out the value pairs
+            f++;
+        } while (++f < m_CONFIG_SIZE);
 
-        } // End while
 		fclose(file);
 
 	} // End of file

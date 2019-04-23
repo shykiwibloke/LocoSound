@@ -81,7 +81,7 @@ int initSerial()
 	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); //raw mode
 	options.c_cc[VMIN] = 1;
 	options.c_cc[VTIME] = 0;
-	cfsetspeed(&options, getConfigStr());    //Get the proper baud rate
+	cfsetspeed(&options, getConfigSpeed());    //Get the proper baud rate
 	tcflush(m_serialhandle, TCIFLUSH);
 	tcsetattr(m_serialhandle, TCSANOW, &options);
 

@@ -94,10 +94,6 @@ void soundService()
 
 void changeThrottle(void)
 {
-
-	fprintf(stderr,"\n_______________\n\n");    //signal start of new set of commands
-	fprintf(stderr, "THROTTLE CHANGE\n");
-
 	//Handle throttle notch change up or down - also handles start and stop
 
 	if (m_EngineQueue.IsPlaying){
@@ -120,7 +116,8 @@ void changeThrottle(void)
 		else   //General Acceleration handling
 		{
 			//Queue appropriate rev-up sequence as well as new throttle setting.
-			fprintf(stderr,"_____addMessageLine("");\n\nRev up from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
+			logInt("Reving up from ",m_SndThrottlePos);
+            logInt("Reving up to ", g_LC_ControlState.ThrottlePos);
 			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
@@ -131,7 +128,7 @@ void changeThrottle(void)
 		if ( g_LC_ControlState.ThrottlePos == -1)  //special case - stop engine
 		{
 			//Kill Engine
-			fprintf(stderr, "THROTTLE STOP REC'D\n");
+			logMessage("Engine Stopped",true);
             g_LC_ControlState.ThrottleActive = false;
 
             //Special manipulation of air compressor so it plays air dryer forever while we are shut down
@@ -145,7 +142,8 @@ void changeThrottle(void)
 		}
 		else  //General Deceleration handling
 		{
-			fprintf(stderr,"_____\n\nRev down from %d to %d\n",m_SndThrottlePos, g_LC_ControlState.ThrottlePos);
+			logInt("Rev down from ",m_SndThrottlePos);
+			logInt("Rev down to ", g_LC_ControlState.ThrottlePos);
 			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
 			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 
@@ -220,7 +218,6 @@ void changeHorn(void)
             clearQueue(&m_HornQueue);
             queueSound(&m_HornQueue, 0, SF_HORN_END, 100, 0, LC_PLAY_ONCE);
             playQueueItem(&m_HornQueue);
-            fprintf(stderr,"J Press\n");
             m_SndHornPressed = false;
         }
 	}
@@ -231,7 +228,6 @@ void changeHorn(void)
 		queueSound(&m_HornQueue, 0, SF_HORN_ST, 0, 100, LC_PLAY_ONCE);
 		queueSound(&m_HornQueue, 1, SF_HORN, 100, 100, LC_PLAY_LOOP);
 		playQueueItem(&m_HornQueue);
-        fprintf(stderr,"H Press\n");
 		m_SndHornPressed = true;
 
 	}
@@ -246,7 +242,7 @@ void changeCompressor(void)
 
 //todo - alter this so it works when engine has not running - no compressor, but air dryer....
 
-    int value = 2 + rand() % 6;            //3 - 5 mins range seed
+    int value = 2 + rand() % 10;            //3 - 10 mins range seed
     static Uint32 torun = 30000;            //first time goes off 30 seconds into idle after startup
 
     if(SDL_TICKS_PASSED(SDL_GetTicks(),torun))
@@ -263,7 +259,7 @@ void changeCompressor(void)
 		playQueueItem(&m_AirCompQueue);
 
         //set the next time to run
-        torun = SDL_GetTicks()+ (value * 60000);   //set current time plus value * one minute to give 1 - 5 mins range
+        torun = SDL_GetTicks()+ (value * 60000);   //set current time plus value * one minute to give 1 - 10 mins range
     }
     else if(!m_AirCompQueue.IsPlaying)  //if queue is currently not playing
     {
@@ -341,7 +337,7 @@ void queuePartSound(LC_SoundQueue_t *pQ,
     */
         //bounds checking
         if(bufstart == 0 || reqlen == 0 || reqlen > slen || startPos >= endPos)
-            fprintf(stderr,"Specified mix_chunk buffer, requested length and/or start/stop positions invalid\n");
+            logMessage("Specified mix_chunk buffer, requested length and/or start/stop positions invalid",true);
         else
         {
 
@@ -364,14 +360,12 @@ void playQueueItem(LC_SoundQueue_t *pQ)
     //At least the first sound chunk needs to be not null or the code will crash
    if(pQ->soundChunk[0] != NULL)
    {
-
-       fprintf(stderr,"Starting to play %s sound %d\n",pQ->Qlabel,pQ->currentItem);
+       logString("playQueueItem() - Starting to play ",pQ->Qlabel);
+       logInt("Playing Queued Item ",pQ->currentItem);
 
         //set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
 
     //pQ->soundChunk[pQ->currentItem]->alen - put this in a subroutine called getchunklen(pQ) - which returns zero IF sund chunk is null
-
-
 
         if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
         {
@@ -390,7 +384,9 @@ void playQueueItem(LC_SoundQueue_t *pQ)
         if (pQ->channel == -1)
         {
             pQ->IsPlaying = false;
-            fprintf(stderr,"Error playing sound %d on channel %d for %s\n",pQ->currentItem, pQ->channel,pQ->Qlabel);
+            logInt("Error playing sound ",pQ->currentItem);
+            logInt("On channel ",pQ->channel);
+            logString("For ",pQ->Qlabel);
         }
         else
         {
@@ -398,7 +394,8 @@ void playQueueItem(LC_SoundQueue_t *pQ)
             Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
 
             pQ->IsPlaying = true;
-            fprintf(stderr,"%s sound %d assigned channel %d and playing OK \n",pQ->Qlabel,pQ->currentItem, pQ->channel);
+            logString("Sound playing OK of for ",pQ->Qlabel);
+            logInt("Assinged to channel ",pQ->channel);
 
         }
     }
@@ -411,14 +408,13 @@ void playQueueItem(LC_SoundQueue_t *pQ)
  *********************************************/
 void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut)
 {
-
 	pQ->currentFadeStart = SDL_GetTicks();         //Trigger the fade out of the sound in the service channel code
 	pQ->fadeOutTime[pQ->currentItem] = fadeOut;
 	pQ->currentPlayEnd = SDL_GetTicks() + fadeOut; //Trigger the end of the sound in the service channel code
 	pQ->loopCount[pQ->currentItem] = 0;
 	pQ->soundChunk[(pQ->currentItem)+1] = NULL;
 
-	fprintf(stderr,"Stopping %s sound on channel %d, index %d for %d ms\n",pQ->Qlabel, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);
+	logInt("Fading out queue playing on channel ",pQ->channel);
 	serviceChannel(pQ);
 }
 
@@ -441,14 +437,15 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound finished?
 		if (SDL_TICKS_PASSED(currentTime,pQ->currentPlayEnd) ) //check for complete end-of-sound b4 checking fade out times
 		{
-			fprintf(stderr,"calculated time expired\n");
+			logInt("Calculated time expired for current sound on channel ",pQ->channel);
 			finishPlayingSound(pQ);
 
 		}
 		//has current sound got to the point of fading out?
 		else if (SDL_TICKS_PASSED(currentTime, pQ->currentFadeStart))
 		{
-			fprintf(stderr,"Fading out %s channel %d, index %d for %d ms\n", pQ->Qlabel, pQ->channel, pQ->currentItem, pQ->fadeOutTime[pQ->currentItem]);//IF the next sound is zero length AND we are not going to be at the end of the queue
+			logInt("Fading out sound on channel ", pQ->channel);
+			//IF the next sound is zero length AND we are not going to be at the end of the queue
 			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]+1);
 			finishPlayingSound(pQ);
 		}
@@ -469,14 +466,18 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 	{
 		//If sound is complete and there are no more in this queue - then shut the queue down here even though we might be still fading
 		pQ->IsPlaying = false;
+		logString("Queue reached end ",pQ->Qlabel);
 	}
 	else if(next == LC_SOUND_QUEUE_MAX)  //IF we are at the end of the queue entirely
 	{
 		pQ->IsPlaying = false;
+        logString("Queue reached max samples ",pQ->Qlabel);
+
 	}
 	else
 	{
 		// there are more in this queue - so tidy up and go start the next one.
+		logString("Queuing next for ",pQ->Qlabel);
 
         next++;
 
@@ -548,6 +549,8 @@ void showChannelSummary(void)
  {
     int f = 0;
 
+    logMessage("Clearing All Sound Queues",true);
+
     for(f=0;f<LC_MAX_CHANNELS;f++)
     {
                Mix_FadeOutChannel(f,1);
@@ -605,7 +608,8 @@ void clearQueue(LC_SoundQueue_t *pQ)
 	}
 	if (Mix_Playing(pQ->channel))
 	{
-		fprintf(stderr,"%s channel %d cleared\n",pQ->Qlabel,pQ->channel);
+		logString("Queue cleared for ",pQ->Qlabel);
+		logInt("Queue was playing on channel ",pQ->channel);
  		pQ->channel = -1;         //set so next sound will be allocated a fresh mix channel
 
 	}
@@ -637,7 +641,7 @@ int initAudio(void)
 	Mix_AllocateChannels(LC_MAX_CHANNELS);
 
 
-	if (setFilePath(getConfigStr("SOUND_FILE_PATH"))){
+	if (setFilePath(getConfigStr("SOUND_FILE_PATH"),false)){
 		return 1;
 	}
 

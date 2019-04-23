@@ -80,6 +80,8 @@ int initScreen()
     m_screenMode = MODE_GRAPHIC;
 
     atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
+//TODO - temporary command:
+    fprintf(stderr, "Setting screen to %ix%i\n",getConfigVal("SCREEN_WIDTH"),getConfigVal("SCREEN_HEIGHT"));
 
     // Create an application window with the following settings:
     m_mainWindow = SDL_CreateWindow(
@@ -331,6 +333,8 @@ void addMessageLine(const char* msgline)
     if(m_msgPtr>=MSG_RECT_LINES)
         m_msgPtr = 0;               //buffer is treated as circular, so go around again
 
+    logMessage(msgline,true);            //log message in the log file (only works if debug option set on startup)
+
 }
 
 /*****************************
@@ -566,7 +570,7 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
     //	SDL_Surface* optimizedSurface = NULL;
     SDL_Texture* newTexture = NULL;
 
-    setFilePath(getConfigStr("GRAPHIC_FILE_PATH"));   //change directory to the data file path
+    setFilePath(getConfigStr("GRAPHIC_FILE_PATH"),false);
 
     SDL_Surface* loadedSurface = SDL_LoadBMP(fileName);
 
