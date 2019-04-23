@@ -612,10 +612,10 @@
 	<SDL2/SDL.h>
 	"LC_globals.h"
 
-1555989601 source:c:\users\chris\documents\github\locosound\lc_utilities.c
+1556054104 source:c:\users\chris\documents\github\locosound\lc_utilities.c
 	"LC_utilities.h"
 
-1555989902 source:c:\users\chris\documents\github\locosound\lc_main.c
+1556058825 source:c:\users\chris\documents\github\locosound\lc_main.c
 	"LC_main.h"
 
 1545271264 c:\users\chris\documents\github\locosound\lc_main.h
@@ -661,9 +661,9 @@
 	"LC_configReader.h"
 	"LC_screen.h"
 
-1555988309 source:c:\users\chris\documents\github\locosound\lc_screen.c
+1556053614 source:c:\users\chris\documents\github\locosound\lc_screen.c
 	"LC_screen.h"
 
-1555975833 source:c:\users\chris\documents\github\locosound\lc_sound.c
+1556052827 source:c:\users\chris\documents\github\locosound\lc_sound.c
 	"LC_sound.h"
 

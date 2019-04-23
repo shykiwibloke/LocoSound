@@ -3,9 +3,9 @@
 //  LocoSoundv2
 //
 //  Created by Chris Draper on 20/09/14.
-//  Copyright (c) 2014 Winter Creek. All rights reserved.
+//  Copyright (c) 2014-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #ifndef LocoControl_LC_globals_h
 #define LocoControl_LC_globals_h

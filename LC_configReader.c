@@ -2,10 +2,10 @@
 //  LC_configReader.c
 //  LocoSoundv2
 //
-//  Created by Chris Draper on 9/02/17.
-//  Copyright (c) 2017 Winter Creek. All rights reserved.
+//  Created by Chris Draper on 6/05/15.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_configReader.h"
 
@@ -72,6 +72,7 @@ int loadConfig()
 	if (file == NULL)
 	{
 	    saveConfig();   //generate a config file for the user in the directory where the program is run from
+        fprintf(stderr,"Could not find Config file. Created 'LocoSound.conf' in program directory. Set to default values.\n");
 	}
 	else
     {
@@ -98,7 +99,6 @@ int loadConfig()
 				*equ = 0;
 				//remove leading and trailing whitespace from the label and value and store them away
 				s = Trim(line);
-                logString("Loading Config Line: ",s);
 
 				if(s)
                     memcpy((char*)label,s,strlen(s));

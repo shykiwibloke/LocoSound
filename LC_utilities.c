@@ -3,9 +3,9 @@
 //  LocoControl
 //
 //  Created by Chris Draper on 6/05/15.
-//  Copyright (c) 2015 Winter Creek. All rights reserved.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_utilities.h"
 
@@ -93,7 +93,8 @@ void openLogFile(void)
 
         atexit(closeLogFile);
 
-        logMessage("Log File Created",true);
+        fprintf(stderr,"Debug option Set. Log File created.\n");
+
 	}
 
 }
@@ -107,6 +108,7 @@ void openLogFile(void)
 void closeLogFile(void)
 {
    logMessage("Log File Closed",true);
+   fprintf(stderr,"Log file closed");
    fclose(g_LogFileHandle);
 }
 

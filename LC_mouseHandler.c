@@ -2,10 +2,10 @@
 //  LC_mouseHandler.c
 //  LocoControl
 //
-//  Created by Chris Draper on 19/06/15.
-//  Copyright (c) 2015 Winter Creek. All rights reserved.
+//  Created by Chris Draper on 6/05/15.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_mouseHandler.h"
 

@@ -3,9 +3,9 @@
 //  LocoControl
 //
 //  Created by Chris Draper on 6/05/15.
-//  Copyright (c) 2015 Winter Creek. All rights reserved.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.3 released 03/04/2018
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_screen.h"
 
@@ -40,9 +40,10 @@ void screenService(void)
             switch(m_screenMode)
             {
                 case MODE_DIAGNOSTIC:
-                    updateMessageWindow();
+                    updateMessageWindow();      //only update the message text if window is showing
                     break;
                 case MODE_CONFIG:               //todo no config mode for now so allow it to go to graphic/default
+                                                //todo - config sound levels?
                 case MODE_GRAPHIC:
                 default:
                     updateThrottle();
@@ -80,8 +81,6 @@ int initScreen()
     m_screenMode = MODE_GRAPHIC;
 
     atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
-//TODO - temporary command:
-    fprintf(stderr, "Setting screen to %ix%i\n",getConfigVal("SCREEN_WIDTH"),getConfigVal("SCREEN_HEIGHT"));
 
     // Create an application window with the following settings:
     m_mainWindow = SDL_CreateWindow(
@@ -100,6 +99,7 @@ int initScreen()
         // In the event that the window could not be made...
         //note - cant put simple message box here as we dont have a window to put it on!
         fprintf(stderr,"Could not create window:'%s'\n", SDL_GetError());
+        logMessage("Could not create window", true);
         return 1;
     }
     else
@@ -114,7 +114,8 @@ int initScreen()
         if( m_mainRenderer == NULL )
         {
             fprintf(stderr,"Could not create renderer:'%s'\n", SDL_GetError());
-            exit(EXIT_FAILURE);
+            logMessage("Could not create renderer", true);
+            return 1;
         }
 
         //necessary to esnure all the graphics are placed as intended when we do not know the exact size of the displayed window
@@ -122,7 +123,6 @@ int initScreen()
 
         //Initialize default renderer colour
         SDL_SetRenderDrawColor( m_mainRenderer, 0x0, 0x0, 0x0, 0x0 );
-
 
         //Now load the background image into buffer
         m_background = loadTextureFromBMP(m_mainRenderer, "BACKGROUND.BMP");
@@ -134,24 +134,24 @@ int initScreen()
             exit(EXIT_FAILURE);
         }
 
-        const SDL_version *link_version=TTF_Linked_Version();
-        printf("SDL_ttf version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
+//        const SDL_version *link_version=TTF_Linked_Version();
+//        printf("SDL_ttf version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
 
         //Now open the fonts we need
         m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), MSG_RECT_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_msgFont == NULL)
         {
 
-            fprintf(stderr,"Could not open message font: '%s'\n",SDL_GetError());
+            fprintf(stderr,"Could not open font file: '%s'\n",SDL_GetError());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
-            exit(EXIT_FAILURE);
+            return 1;
         }
 
         m_bigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), LARGE_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_bigFont == NULL)
         {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
-            exit(EXIT_FAILURE);
+            return 1;
         }
 
         initMotorGraph();
@@ -290,9 +290,6 @@ void initBarGraph(LC_BarGraph_t* graph,const int xpos,const int ypos,const int h
  *****************************/
 void updateMessageWindow(void)
 {
-    //todo - This becomes the update Log code to a larger screen
-    //toto - replace here with a manager than shows the buttons Start/Stop/Reset/Screen Swap -> msgs ->graphics ->config
-
     //repaints the window and generates all the text in it
 
     int f = 0;
@@ -361,11 +358,11 @@ void updateMotorGraphSet(void)
     //Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
 
     int         f = 0;
-    char        bartext[5] = {0,0,0,0,0};
+    char        bartext[6] = {0}; //used to hold each text label as it is created
 
     renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GREEN);   //create the background
 
-    for(f=0; f<6; f++)
+    for(f=0; f<6; f++)   //iterate through the six graphs updating each and their text
     {
         //are we generating (green) or consuming (red)?
         if(g_LC_ControlState.motorAmps[f] < 0)
@@ -373,7 +370,7 @@ void updateMotorGraphSet(void)
         else
             updateBarGraph(&m_motorGraph[f], abs(g_LC_ControlState.motorAmps[f]),LC_RED);
 
-        snprintf(bartext,4,"%-2.1f",(float) g_LC_ControlState.motorAmps[f]);
+        snprintf(bartext,5,"%-2.1f",(float) g_LC_ControlState.motorAmps[f]);
         renderText(bartext,m_msgFont,LC_BLACK,m_motorGraph[f].label);
     }
 }
@@ -456,7 +453,6 @@ void updateButton(LC_Button_t* button)
 {
 //    static int angle = 0;
     SDL_RenderCopy(m_mainRenderer, button->image, NULL, &button->rect);
-    //SDL_RenderCopyEx(m_mainRenderer, button->image, NULL, &button->rect,angle++,NULL,SDL_FLIP_NONE);
 }
 
 
@@ -499,7 +495,7 @@ void updateDynamic()
 
     static const SDL_Rect	Dynamic_rect = {DYN_RECT_X,DYN_RECT_Y,25,25};    //custom numbers to match bmp
 
-    if(g_LC_ControlState.DynBrakePos > -1)
+    if(g_LC_ControlState.ThrottlePos > -1)   //only show if motor is started.
     {
         char str[2] = {'0' + g_LC_ControlState.DynBrakePos,0};
         renderText(str, m_bigFont, LC_BLACK,Dynamic_rect);
@@ -552,7 +548,6 @@ void updateBattery(void)
 
     char str[15];
 
-
     sprintf(str,"%.2f volts", g_LC_ControlState.vbat);
     renderText(str, m_bigFont, LC_BLACK, Battery_rect);
 }
@@ -567,7 +562,6 @@ void updateBattery(void)
 SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
 {
 
-    //	SDL_Surface* optimizedSurface = NULL;
     SDL_Texture* newTexture = NULL;
 
     setFilePath(getConfigStr("GRAPHIC_FILE_PATH"),false);
@@ -576,10 +570,8 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
 
     if (loadedSurface == NULL)
     {
-
-        fprintf(stderr, "Unable to load image %s\n",fileName);
+        logString("Unable to find or load image file: ",fileName);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Cant load image file. See log for details",m_mainWindow);
-
     }
 
     newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
@@ -587,8 +579,6 @@ SDL_Texture* loadTextureFromBMP(SDL_Renderer* renderer, const char* fileName)
     SDL_FreeSurface( loadedSurface );
 
     return newTexture;
-
-
 }
 
 void renderText(const char* text, TTF_Font* font,const SDL_Color colour, SDL_Rect Message_rect)
@@ -597,6 +587,7 @@ void renderText(const char* text, TTF_Font* font,const SDL_Color colour, SDL_Rec
     if (font == NULL)
         {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR using FONT",SDL_GetError(),m_mainWindow);
+            logString("Fatal Error attempting to render text ",text);
             exit(EXIT_FAILURE);
         }
     // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first

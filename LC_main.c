@@ -3,9 +3,9 @@
 //  LocoControl
 //
 //  Created by Chris Draper on 6/05/15.
-//  Copyright (c) 2015 Winter Creek. All rights reserved.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_main.h"
 
@@ -20,7 +20,10 @@ int main(int argc, char *argv[])
 {
 
 	int 	quit = 0;
-	Uint32 	lastrun = 0;
+	Uint32 	lastRefresh = 0;
+	Uint32  lastTimeLog = 0;
+
+	Uint32  StartTime=0, EventServiceTime=0, ScreenServiceTime=0, SerialServiceTime=0, SoundServiceTime=0;
 
 
     iniFilePaths();
@@ -29,10 +32,9 @@ int main(int argc, char *argv[])
 	loadConfig();					//load the users config file (used by many modules)
 	initGlobals();					//Init the applications global variables
 	openLogFile();                  //Open the log file if debug option set
-	initModules();					//Init the SDL systems we rely on for machine portability
+ 	initModules();					//Init the SDL systems we rely on for machine portability
 
-	if(g_Debug)
-        addMessageLine("Debug option Set. Log File created.");
+
 
 	//all ready to begin the main loop
 
@@ -41,41 +43,61 @@ int main(int argc, char *argv[])
 	//Main Loop
 	while(!quit) {
 
+
+#ifdef linux
+
+        // NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
+        //   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
+
+		StartTime = SDL_GetTicks();
+		actionArduinoCommand();
+        SerialServiceTime = SDL_GetTicks() - StartTime;
+
+#endif  // linux
+
 		//check for SDL Events - and process accordingly
+		StartTime = SDL_GetTicks();
 
 		while(SDL_PollEvent(&g_event)) {
 			switch(g_event.type) {
 				case SDL_QUIT:
 					quit = 1;
 					break;
-				case SDL_KEYDOWN:
+				case SDL_KEYDOWN:               //Includes most Arduino received events
 				//case SDL_KEYUP:
 					quit = handleKey(g_event.key);
 					break;
 
-				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONDOWN:       //Includes touch screen events
 					handleMouseDown();
 					break;
 			}
 		}
 
+        EventServiceTime = SDL_GetTicks() - StartTime;
+
+   		StartTime = SDL_GetTicks();
 		soundService();								//Service Sound Subsystem - very frequently!
-
-// NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
-//   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
-
-#ifdef linux
-
-		actionArduinoCommand();
-
-#endif  // linux
+		SoundServiceTime = SDL_GetTicks() - StartTime;
 
         //Service Screen Subsystem once per 1/4 second
-		if SDL_TICKS_PASSED(SDL_GetTicks(),lastrun)
+		if SDL_TICKS_PASSED(SDL_GetTicks(),lastRefresh)
 		{
+            StartTime = SDL_GetTicks();
 			screenService();
-			lastrun = SDL_GetTicks()+20;
-		}
+			ScreenServiceTime = SDL_GetTicks() - StartTime;
+			lastRefresh = SDL_GetTicks()+250;
+
+            if SDL_TICKS_PASSED(SDL_GetTicks(),lastTimeLog)   //inside screen condition to ensure we get its stats
+            {
+                //EventServiceTime, ScreenServiceTime, SerialServiceTime, SoundServiceTime
+                logInt("Event Service Time: ",EventServiceTime);
+                logInt("Sound Service Time: ",SoundServiceTime);
+                logInt("Serial Service Time: ",SerialServiceTime);
+                logInt("Screen Service Time: ",ScreenServiceTime);
+                lastTimeLog = SDL_GetTicks() + 10000;
+            }
+        }
 
 	}  //End of Main Loop
 
@@ -223,6 +245,19 @@ int handleKey(SDL_KeyboardEvent key) {
             addMessageLine("c = cancel all currently playing sounds - debug command");
             addMessageLine("-----------------------------------------");
             break;
+        case SDLK_F12:
+
+                g_LC_ControlState.motorAmps[0] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[1] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[2] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[3] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[4] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+                g_LC_ControlState.motorAmps[5] = g_LC_ControlState.ThrottlePos;     //array is zero based , 0-5 for each motor
+
+                //output debug log entry here showing raw received value
+                logMessage("Test all graphs",true);
+                logInt("Amps set to ",g_LC_ControlState.ThrottlePos);
+            break;
 		default:
 		    logInt("Unknown command received ",key.keysym.sym);
 			break;
@@ -367,9 +402,9 @@ void initModules(void)
     SDL_version linked;
     SDL_GetVersion(&linked);
 
-    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Using SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Running SDL version %d.%d.%d",linked.major, linked.minor, linked.patch);
     addMessageLine(m_msgTempLine);
-    fprintf(stderr,m_msgTempLine);
+    fprintf(stderr,"%s\n",m_msgTempLine);
 
 	atexit(closeProgram);  //setup the closedown callback
 
@@ -377,17 +412,25 @@ void initModules(void)
 	if(initScreen() != 0)
 	{
 		fprintf(stderr, "Initalising Screen failed, program terminated\n");
-		exit(EXIT_FAILURE);    //error setting up
-	}
-    addMessageLine("Screen & Fonts Initialized....OK");
-	if(initAudio() != 0)
-	{
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR","Audio Initialization failed",m_mainWindow);
-		fprintf(stderr, "Initalising Audio failed, program terminated\n");
+		logMessage("Initalising Screen failed, program terminated", true);
 		exit(EXIT_FAILURE);    //error setting up
 	}
 
-    addMessageLine("Audio Mixer Initialized....OK");
+    snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Running SDL TTF version %d.%d.%d",TTF_MAJOR_VERSION, TTF_MINOR_VERSION, TTF_PATCHLEVEL);
+    addMessageLine(m_msgTempLine);
+    fprintf(stderr,"%s\n",m_msgTempLine);
+
+
+	if(initAudio() != 0)
+	{
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR","Audio Initialization failed",m_mainWindow);
+		logMessage("Initalising Audio failed, program terminated",true);
+		exit(EXIT_FAILURE);    //error setting up
+	}
+
+	snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"Running SDL Mixer version %d.%d.%d", SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL);
+    addMessageLine(m_msgTempLine);
+    fprintf(stderr,"%s\n",m_msgTempLine);
 
 
 #ifdef linux

@@ -2,10 +2,10 @@
 //  LC_sound.c
 //  Loco Control Sound Manager
 //
-//  Created by Chris Draper on 19/09/14.
-//  Copyright (c) 2014 Winter Creek. All rights reserved.
+//  Created by Chris Draper on 6/05/15.
+//  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 1.0.2 released 11/04/2017
+//  VERSION 2.0.0 released 24/04/2019
 
 #include "LC_sound.h"
 
@@ -95,6 +95,7 @@ void soundService()
 void changeThrottle(void)
 {
 	//Handle throttle notch change up or down - also handles start and stop
+	logMessage("changeThrottle()",true);
 
 	if (m_EngineQueue.IsPlaying){
 		fadeOutQueue(&m_EngineQueue,m_fadeSTD);  //force current sounds to fade out gradually
@@ -163,6 +164,7 @@ void changeThrottle(void)
 void changeDynamic(void)
 {
 
+    logMessage("changeDynamic()",true);
     //if dynamic brake is NOT currently playing and lever is NOT at idle
 	if( !m_DynBrakeQueue.IsPlaying && g_LC_ControlState.DynBrakePos != 0)
 	{
@@ -240,13 +242,12 @@ void changeHorn(void)
 void changeCompressor(void)
 {
 
-//todo - alter this so it works when engine has not running - no compressor, but air dryer....
-
     int value = 2 + rand() % 10;            //3 - 10 mins range seed
     static Uint32 torun = 30000;            //first time goes off 30 seconds into idle after startup
 
     if(SDL_TICKS_PASSED(SDL_GetTicks(),torun))
     {
+        logMessage("changeCompressor() - starting run",true);
         if (m_AirCompQueue.IsPlaying)
         {
             fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out gradually
@@ -263,6 +264,8 @@ void changeCompressor(void)
     }
     else if(!m_AirCompQueue.IsPlaying)  //if queue is currently not playing
     {
+        logMessage("changeCompressor() - completing run",true);
+
         clearQueue(&m_AirCompQueue);
  		queueSound(&m_AirCompQueue, 0, SF_AIRDRYER, 0, 100, LC_PLAY_LOOP);
         playQueueItem(&m_AirCompQueue);
@@ -360,8 +363,8 @@ void playQueueItem(LC_SoundQueue_t *pQ)
     //At least the first sound chunk needs to be not null or the code will crash
    if(pQ->soundChunk[0] != NULL)
    {
-       logString("playQueueItem() - Starting to play ",pQ->Qlabel);
-       logInt("Playing Queued Item ",pQ->currentItem);
+       logString("playQueueItem() for ",pQ->Qlabel);
+       logInt("playQueueItem() item ",pQ->currentItem);
 
         //set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
 
@@ -384,9 +387,9 @@ void playQueueItem(LC_SoundQueue_t *pQ)
         if (pQ->channel == -1)
         {
             pQ->IsPlaying = false;
-            logInt("Error playing sound ",pQ->currentItem);
-            logInt("On channel ",pQ->channel);
-            logString("For ",pQ->Qlabel);
+            logInt("playQueueItem() Error playing sound ",pQ->currentItem);
+            logInt("playQueueItem() On channel ",pQ->channel);
+            logString("playQueueItem() For ",pQ->Qlabel);
         }
         else
         {
@@ -394,8 +397,7 @@ void playQueueItem(LC_SoundQueue_t *pQ)
             Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
 
             pQ->IsPlaying = true;
-            logString("Sound playing OK of for ",pQ->Qlabel);
-            logInt("Assinged to channel ",pQ->channel);
+            logInt("playQueueItem() Assigned to channel ",pQ->channel);
 
         }
     }
@@ -414,7 +416,7 @@ void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut)
 	pQ->loopCount[pQ->currentItem] = 0;
 	pQ->soundChunk[(pQ->currentItem)+1] = NULL;
 
-	logInt("Fading out queue playing on channel ",pQ->channel);
+	logInt("fadeOutQueue() channel ",pQ->channel);
 	serviceChannel(pQ);
 }
 
@@ -437,14 +439,14 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound finished?
 		if (SDL_TICKS_PASSED(currentTime,pQ->currentPlayEnd) ) //check for complete end-of-sound b4 checking fade out times
 		{
-			logInt("Calculated time expired for current sound on channel ",pQ->channel);
+			logInt("serviceChannel() Sound finished on channel ",pQ->channel);
 			finishPlayingSound(pQ);
 
 		}
 		//has current sound got to the point of fading out?
 		else if (SDL_TICKS_PASSED(currentTime, pQ->currentFadeStart))
 		{
-			logInt("Fading out sound on channel ", pQ->channel);
+			logInt("serviceChannel()Fading out sound on channel ", pQ->channel);
 			//IF the next sound is zero length AND we are not going to be at the end of the queue
 			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]+1);
 			finishPlayingSound(pQ);
@@ -466,18 +468,18 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 	{
 		//If sound is complete and there are no more in this queue - then shut the queue down here even though we might be still fading
 		pQ->IsPlaying = false;
-		logString("Queue reached end ",pQ->Qlabel);
+		logString("finishPlayingSound() Queue reached end ",pQ->Qlabel);
 	}
 	else if(next == LC_SOUND_QUEUE_MAX)  //IF we are at the end of the queue entirely
 	{
 		pQ->IsPlaying = false;
-        logString("Queue reached max samples ",pQ->Qlabel);
+        logString("finishPlayingSound() Queue reached max samples ",pQ->Qlabel);
 
 	}
 	else
 	{
 		// there are more in this queue - so tidy up and go start the next one.
-		logString("Queuing next for ",pQ->Qlabel);
+		logString("finishPlayingSound() Queuing next for ",pQ->Qlabel);
 
         next++;
 
@@ -608,8 +610,8 @@ void clearQueue(LC_SoundQueue_t *pQ)
 	}
 	if (Mix_Playing(pQ->channel))
 	{
-		logString("Queue cleared for ",pQ->Qlabel);
-		logInt("Queue was playing on channel ",pQ->channel);
+		logString("clearQueue() for ",pQ->Qlabel);
+		logInt("clearQueue() channel ",pQ->channel);
  		pQ->channel = -1;         //set so next sound will be allocated a fresh mix channel
 
 	}
