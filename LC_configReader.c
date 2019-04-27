@@ -16,7 +16,7 @@ config_t m_config[] =
 		{"SCREEN_HEIGHT", "600"},
 		{"SCREEN_MAX","NO"},
 		{"FONT_FILE","FreeSans.ttf"},
-		{"LOCO_NAME","?"},
+		{"LOCO_NAME","DFT 7361"},
 		{"BAUD_RATE","115200"},
 		{"SERIAL_DEVICE","/dev/ttyACM0"},
 		{"SOUND_FILE_PATH","../../Sounds"},

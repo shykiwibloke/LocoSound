@@ -530,13 +530,13 @@ void showChannelSummary(void)
                 //todo - mark this for deletion next time around if in same state
             }
 
-            snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"%d channel is playing for %s", f, ptr);
+            snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is playing for %s", f, ptr);
             addMessageLine(m_msgTempLine);
 
         }
         else  //if NOT Mix_playing
         {
-            snprintf(m_msgTempLine,MSG_RECT_LINE_LENGTH,"%d channel is free", f);
+            snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is free", f);
             addMessageLine(m_msgTempLine);
         }
      }

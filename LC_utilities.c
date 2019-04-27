@@ -23,11 +23,17 @@ int setFilePath(const char *path, bool forceCreate)
 	{
         if(forceCreate)            //if directory does not exist - caller wants it created
         {
+            #ifdef linux
+            if(mkdir(path,S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+            #elifdef WIN32
             if(mkdir(path) != 0)
+            #endif // WIN32
+
             {
                 fprintf(stderr,"Could not create or verify directory '%s'\n",path);
                 return 1;
             }
+            chdir(path);
         }
         else
         {

@@ -20,31 +20,23 @@ void screenService(void)
 {
     //Regular servicing of the screen contents.
 
-
-    //TODO - FIGURE OUT IF UPDATE IS NECESSARY HERE
-
-
     if (m_mainWindow)
     {
 
         if(m_mainRenderer)
         {
             SDL_SetRenderDrawColor( m_mainRenderer, 0x0, 0x0, 0x0, 0x0 );
-
- //TODO - MOVE THIS TO INIT - Should never clear the whole screen while running
-          //  SDL_RenderClear(m_mainRenderer);
+            SDL_RenderClear(m_mainRenderer);
 
             // render background, NULL for source and destination rectangles just means "use the default"
-//REMOVE: SDL_RenderCopy(m_mainRenderer, m_background, NULL, NULL);
+            SDL_RenderCopy(m_mainRenderer, m_background, NULL, NULL);
 
-//TODO - MOVE THIS to INIT - SHOULD NEVER REDO BANNER
             updateBanner();
 
-//            updateButton(&m_menuBtn);
+            updateButton(&m_menuBtn);
 
 
                    //initialize the various sub-sections of the screen area
- /* REMOVE
             switch(m_screenMode)
             {
                 case MODE_DIAGNOSTIC:
@@ -54,20 +46,16 @@ void screenService(void)
                                                 //todo - config sound levels?
                 case MODE_GRAPHIC:
                 default:
-*/
                     updateThrottle();
+                    updateDynamic();
                     updateReverser();
+                    updateSpeedo();
                     updateBattery();
-                    updateAmperage();
                     updateButton(&m_startBtn);
-                    updateButton(&m_volumeFullBtn);
-                    updateButton(&m_volumeHalfBtn);
-                    updateButton(&m_volumeOffBtn);
-
-            //Also add total amperage box.
+                    updateButton(&m_shutdownBtn);
 
                     updateMotorGraphSet();
-  //          }
+            }
 
             SDL_RenderPresent(m_mainRenderer);		//go refresh the screen and return
 
@@ -102,6 +90,7 @@ int initScreen()
                        getConfigVal("SCREEN_WIDTH"),      // width, in pixels
                        getConfigVal("SCREEN_HEIGHT"),     // height, in pixels
                        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
+                       //| SDL_WINDOW_BORDERLESS
                    );
 
     // Check that the window was successfully created
@@ -149,34 +138,32 @@ int initScreen()
 //        printf("SDL_ttf version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
 
         //Now open the fonts we need
-        m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), SMALL_FONT_HEIGHT); //this opens a font style and sets a point size
+        m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), MSG_RECT_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_msgFont == NULL)
         {
 
-            fprintf(stderr,"Could not open small font file: '%s'\n",SDL_GetError());
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING SMALL FONT",SDL_GetError(),m_mainWindow);
+            fprintf(stderr,"Could not open font file: '%s'\n",SDL_GetError());
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
             return 1;
         }
 
         m_bigFont = TTF_OpenFont( getConfigStr("FONT_FILE"), LARGE_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_bigFont == NULL)
         {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING BIG FONT",SDL_GetError(),m_mainWindow);
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING FONT",SDL_GetError(),m_mainWindow);
             return 1;
         }
 
-        m_bannerFont = TTF_OpenFont( getConfigStr("FONT_FILE"), BANNER_FONT_HEIGHT); //this opens a font style and sets a point size
-        if (m_bannerFont == NULL)
-        {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"FATAL ERROR LOADING BANNER FONT",SDL_GetError(),m_mainWindow);
-            return 1;
-        }
         initMotorGraph();
+        initMessageWindow();
 
         //Load any buttons or other overlay images that go on all screen modes here
-        initButton(&m_startBtn,LC_DARK_GREEN,LC_WHITE," START",LC_RED,LC_WHITE,"  STOP ",false,START_BTN_X,START_BTN_Y,START_BTN_H,START_BTN_W,"s");    //commands must be lower case!
+        initButton(&m_menuBtn,"MODE_BTN.BMP",805,45,70,210,"m");
 
-        initVolumeControls();
+        initButton(&m_shutdownBtn,"SHUTDOWN.BMP",860,420,100,100,"x");    //commands must be lower case!
+
+        initButton(&m_startBtn,"START_BTN.BMP",680,395,150,150,"s");    //commands must be lower case!
+
 
     }
 
@@ -202,7 +189,7 @@ void closeScreen(void)
  *
  * Change the current mode of the Screen to the next valid option
  *
- *****************************
+ *****************************/
 void changeScreenMode(void)
 {
     //Just the two modes to handle right now
@@ -214,7 +201,20 @@ void changeScreenMode(void)
         m_screenMode = MODE_GRAPHIC;
 
 }
-*/
+
+/*****************************
+ *
+ * Initalize the window where system messages can be displayed
+ *
+ *****************************/
+void initMessageWindow(void)
+{
+    m_msgArea.x = MSG_RECT_X;
+    m_msgArea.y = MSG_RECT_Y;
+    m_msgArea.w = SCREEN_LOGICAL_W-MSG_RECT_X-MSG_RECT_X;
+    m_msgArea.h = SCREEN_LOGICAL_H-MSG_RECT_H;
+}
+
 /*****************************
  *
  * Create Motor Graph - a collection of graph objects
@@ -234,12 +234,12 @@ void initMotorGraph(void)
     m_motorArea.h = MOTOR_AREA_H;
     m_motorArea.w = MOTOR_AREA_W;
 
-    initBarGraph(&m_motorGraph[0], MOTOR_BAR0_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR0_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
-    initBarGraph(&m_motorGraph[1], MOTOR_BAR1_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR1_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
-    initBarGraph(&m_motorGraph[2], MOTOR_BAR2_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR2_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
-    initBarGraph(&m_motorGraph[3], MOTOR_BAR3_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR3_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
-    initBarGraph(&m_motorGraph[4], MOTOR_BAR4_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR4_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
-    initBarGraph(&m_motorGraph[5], MOTOR_BAR5_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,RECT_BORDER_WIDTH,MOTOR_BAR5_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[0], MOTOR_BAR0_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR0_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[1], MOTOR_BAR1_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR1_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[2], MOTOR_BAR2_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR2_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[3], MOTOR_BAR3_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR3_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[4], MOTOR_BAR4_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR4_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
+    initBarGraph(&m_motorGraph[5], MOTOR_BAR5_X,MOTOR_BAR_Y,MOTOR_BAR_H,MOTOR_BAR_W,MOTOR_BAR_B,MOTOR_BAR5_X+5,MOTOR_BAR_TEXT_Y,MOTOR_BAR_TEXT_W,MOTOR_BAR_TEXT_H,LC_ALMOND,LC_DARK_GREEN);
 
 }
 
@@ -283,6 +283,39 @@ void initBarGraph(LC_BarGraph_t* graph,const int xpos,const int ypos,const int h
 
 }
 
+/*****************************
+ *
+ * Update system messages display
+ *
+ *****************************/
+void updateMessageWindow(void)
+{
+    //repaints the window and generates all the text in it
+
+    int f = 0;
+    int ptr = m_msgPtr;     //get a local copy
+    SDL_Rect thisline;
+
+    //create a rectangle with margins from the message area dimensions for our text
+    thisline.x = m_msgArea.x + 5;
+    thisline.y = m_msgArea.y;
+    thisline.w = m_msgArea.w - 2;
+    thisline.h = MSG_RECT_LINE_HEIGHT;
+
+    renderSquare(&m_msgArea,LC_WHITE,LC_LIGHT_GREEN);
+    for(f=0; f<MSG_RECT_LINES; f++)
+    {
+        if(m_msgBuf[ptr][0] != 0)
+        {
+            renderText(m_msgBuf[ptr],m_msgFont,LC_BLACK,thisline);
+            thisline.y+=MSG_RECT_LINE_HEIGHT;
+        }
+
+        if(++ptr>=MSG_RECT_LINES)
+            ptr = 0;               //treat as circular buffer
+    }
+
+}
 
 /*****************************
  *
@@ -293,11 +326,27 @@ void addMessageLine(const char* msgline)
 {
     //appends supplied character string to the next available line in the text area
     //if text area full - msgPtr makes the area act like it scrolls
+    strncpy(m_msgBuf[m_msgPtr++],msgline,MSG_RECT_LINE_LENGTH-1);
+    if(m_msgPtr>=MSG_RECT_LINES)
+        m_msgPtr = 0;               //buffer is treated as circular, so go around again
 
     logMessage(msgline,true);            //log message in the log file (only works if debug option set on startup)
 
 }
 
+/*****************************
+ *
+ *  clear the message area
+ *
+ *****************************/
+void clearMessageWindow(void)
+{
+    //resets all to initial values
+    memset(m_msgBuf, 0, sizeof m_msgBuf);    //clear the contents of the buffer
+
+    m_msgPtr = 0;
+
+}
 /*****************************
  *
  *  UpdateMotorGraphSet
@@ -308,34 +357,27 @@ void updateMotorGraphSet(void)
     //updates each Motor's graph from global value.
     //Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
 
-    int             f = 0;
-    char            bartext[6] = {0}; //used to hold each text label as it is created
-    float           amps    = 0;
-    static float    lastamps[6] = {0};
+    int         f = 0;
+    char        bartext[6] = {0}; //used to hold each text label as it is created
+    float       amps = 0;
 
-    renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GRAY);   //create the background
-    renderText("  Motor Amperages",m_msgFont,LC_WHITE,m_motorArea);
+    renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GREEN);   //create the background
 
     for(f=0; f<6; f++)   //iterate through the six graphs updating each and their text
     {
-
         if(g_LC_ControlState.motorAmps[f] !=0)
             amps = (float) g_LC_ControlState.motorAmps[f]/10; //value is in milliamps + guard against divide/0
         else
             amps = 0;
 
-        if(amps != lastamps[f])         //only update the bar if it has changed
-        {
+        //are we generating (green) or consuming (red)
+        if(g_LC_ControlState.motorAmps[f] < 0)
+            updateBarGraph(&m_motorGraph[f], abs(amps),LC_DARK_GREEN);
+        else
+            updateBarGraph(&m_motorGraph[f], abs(amps),LC_RED);
 
-            //are we generating (green) or consuming (red)
-            if(g_LC_ControlState.motorAmps[f] < 0)
-                updateBarGraph(&m_motorGraph[f], abs(amps),LC_DARK_GREEN);
-            else
-                updateBarGraph(&m_motorGraph[f], abs(amps),LC_RED);
-
-            snprintf(bartext,5,"%-2.1f",amps);
-            renderText(bartext,m_msgFont,LC_WHITE,m_motorGraph[f].label);
-        }
+        snprintf(bartext,5,"%-2.1f",amps);
+        renderText(bartext,m_msgFont,LC_BLACK,m_motorGraph[f].label);
     }
 }
 
@@ -386,37 +428,26 @@ void updateBarGraph(LC_BarGraph_t* graph,const int motorAmps, const SDL_Color ba
  *  Init a button
  *
  *****************************/
-void initButton(LC_Button_t* button,
-               const SDL_Color buttonColour,
-               const SDL_Color textColour,
-               const char *text,
-               const SDL_Color buttonPressedColour,
-               const SDL_Color textPressedColour,
-               const char *textPressed,
-               const bool IsPressed,
-               const int xpos,
-               const int ypos,
-               const int height,
-               const int width,
-               const char *cmd )
+int initButton(LC_Button_t* button, const char * BMPfilename,const int xpos,const int ypos,const int height,const int width, const char *cmd )
 {
-    //Loads the specified button structure with the positional information & function to call if pressed
+    //Loads the specified button structure with the bitmap and positional information
+    //returns 0 if OK
 
-    button->buttonColour = buttonColour;
-    button->textColour = textColour;
-    snprintf(button->text,BTN_TEXT_LEN,text);
-    button->buttonPressedColour = buttonPressedColour;
-    button->textPressedColour = textPressedColour;
-    snprintf(button->textPressed,BTN_TEXT_LEN,textPressed);
-    button->IsPressed = IsPressed;
     button->rect.x = xpos;
     button->rect.y = ypos;
     button->rect.h = height;
     button->rect.w = width;
+    button->image =  loadTextureFromBMP(m_mainRenderer, BMPfilename);
+
+    if(button->image == NULL)
+    {
+        fprintf(stderr,"Button Image file %s failed to load\n",BMPfilename);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"ERROR","Button Image file not found or failed to load",m_mainWindow);
+        return 1;
+    }
 
     registerCommand(&button->rect, cmd);			//tell the mouse handler about our button and what command
-    updateButton(button);
-
+    return 0;
 }
 
 /*****************************
@@ -426,41 +457,11 @@ void initButton(LC_Button_t* button,
  *****************************/
 void updateButton(LC_Button_t* button)
 {
-    if(button->IsPressed == true)
-    {
-        renderSquare(&button->rect,LC_WHITE,button->buttonPressedColour);
-        renderText(button->textPressed, m_bigFont, button->textPressedColour, button->rect);
-    }
-    else
-    {
-        renderSquare(&button->rect,LC_WHITE,button->buttonColour);
-        renderText(button->text, m_bigFont, button->textColour, button->rect);
-    }
-
-
+//    static int angle = 0;
+    SDL_RenderCopy(m_mainRenderer, button->image, NULL, &button->rect);
 }
 
-/*****************************
- *
- *  init Volume Control Area and controls
- *
- *****************************/
 
-void initVolumeControls(void)
-{
-
-        const SDL_Rect volArea = {VOL_AREA_X, VOL_AREA_Y, VOL_AREA_W, VOL_AREA_H};
-        renderSquare(&volArea,LC_WHITE,LC_DARK_GRAY);
-        renderText("      Volume Control",m_msgFont,LC_WHITE,volArea);
-
-        initButton(&m_volumeFullBtn,LC_GRAY,LC_BLACK," LOUD",LC_YELLOW,LC_DARK_GREEN,"  vol 11",false,VOL_FULL_BTN_X,VOL_FULL_BTN_Y,VOL_HALF_BTN_H,VOL_HALF_BTN_W,"l");
-
-        initButton(&m_volumeHalfBtn,LC_GRAY,LC_BLACK,"   MED",LC_CYAN,LC_BLACK,"  vol 5",true,VOL_HALF_BTN_X,VOL_HALF_BTN_Y,VOL_HALF_BTN_H,VOL_HALF_BTN_W,"m");    //commands must be lower case!
-
-        initButton(&m_volumeOffBtn,LC_GRAY, LC_BLACK," MUTE",LC_RED,LC_WHITE,"   OFF",false,VOL_OFF_BTN_X,VOL_OFF_BTN_Y,VOL_OFF_BTN_H,VOL_OFF_BTN_W,"o");
-
-
-}
 /*****************************
  *
  *  Update Banner
@@ -468,20 +469,9 @@ void initVolumeControls(void)
  *****************************/
 void updateBanner(void)
 {
-    static const SDL_Rect	Banner_rect = {BANNER_RECT_X,BANNER_RECT_Y,BANNER_RECT_W,BANNER_RECT_H};
-    static const SDL_Rect   Version_rect = {VER_RECT_X,VER_RECT_Y,VER_RECT_W,VER_RECT_H};
-    static char bannerText[50] = {0};
+    static const SDL_Rect	Banner_rect = {BANNER_RECT_X,BANNER_RECT_Y,25,25};
 
-
-    if(bannerText[0] == '\0')
-    {
-        snprintf(bannerText,50,"    %s Locomotive Controller",getConfigStr("LOCO_NAME"));
-        renderSquare(&Banner_rect,LC_BLACK,LC_BLACK);
-        renderText(bannerText, m_bannerFont, LC_ORANGE, Banner_rect);
-        renderSquare(&Version_rect,LC_BLACK,LC_BLACK);
-        renderText("Version 2.0.0 Released 24/04/2019", m_msgFont, LC_ORANGE, Version_rect);
-
-    }
+    renderText(getConfigStr("LOCO_NAME"), m_bigFont, LC_ORANGE, Banner_rect);
 
 }
 
@@ -492,41 +482,32 @@ void updateBanner(void)
  *****************************/
 void updateThrottle(void)
 {
-    static const SDL_Rect	Throttle_rect = {THR_RECT_X,THR_RECT_Y,THR_RECT_W,THR_RECT_H};    //custom numbers to match bmp
-    static char throttleText[25] = {0};
-    static int lastThrottlePos = -2;  //illogical value to ensure first pass works
-    static int lastDynamicPos = -2;
+    static const SDL_Rect	Throttle_rect = {THR_RECT_X,THR_RECT_Y,25,25};    //custom numbers to match bmp
 
-    if(g_LC_ControlState.ThrottlePos != lastThrottlePos || g_LC_ControlState.DynBrakePos != lastDynamicPos)
+    if(g_LC_ControlState.ThrottlePos > -1)
     {
-
-        lastThrottlePos = g_LC_ControlState.ThrottlePos;
-        lastDynamicPos = g_LC_ControlState.DynBrakePos;
-
-        renderSquare(&Throttle_rect,LC_WHITE,LC_ORANGE);
-
-
-        if(g_LC_ControlState.ThrottlePos == -1)
-        {
-            snprintf(throttleText,25,"     SHUT DOWN");
-        }
-        else if(g_LC_ControlState.DynBrakePos > 0)
-        {
-            snprintf(throttleText,25,"   DYN. BRAKE %d",g_LC_ControlState.DynBrakePos);
-
-        }
-        else if(g_LC_ControlState.ThrottlePos > 0)
-        {
-            snprintf(throttleText,25," THROT. NOTCH %d",g_LC_ControlState.ThrottlePos);
-
-        } else {
-            snprintf(throttleText,25,"    ENGINE IDLE");
-        }
-
-        renderText(throttleText, m_bigFont, LC_BLACK, Throttle_rect);
-        }
+        char str[2] = {'0' + g_LC_ControlState.ThrottlePos,0};
+        renderText(str, m_bigFont, LC_BLACK, Throttle_rect);
+    }
 }
 
+/*****************************
+ *
+ *  Update Dynamic
+ *
+ *****************************/
+void updateDynamic()
+{
+
+    static const SDL_Rect	Dynamic_rect = {DYN_RECT_X,DYN_RECT_Y,25,25};    //custom numbers to match bmp
+
+    if(g_LC_ControlState.ThrottlePos > -1)   //only show if motor is started.
+    {
+        char str[2] = {'0' + g_LC_ControlState.DynBrakePos,0};
+        renderText(str, m_bigFont, LC_BLACK,Dynamic_rect);
+    }
+
+}
 
 /*****************************
  *
@@ -535,32 +516,33 @@ void updateThrottle(void)
  *****************************/
 void updateReverser(void)
 {
-    static const SDL_Rect	Reverser_rect = {REV_RECT_X,REV_RECT_Y,REV_RECT_W,REV_RECT_H};    //custom numbers to match bmp
-    static bool lastrenderedFWD = true;     //illogical start condition to ensure initial paint occurs
-    static bool lastrenderedREV = true;     //illogical...
+    static const SDL_Rect	Dynamic_rect = {REV_RECT_X,REV_RECT_Y,190,50};    //custom numbers to match bmp
 
-    if(g_LC_ControlState.DirForward != lastrenderedFWD || g_LC_ControlState.DirReverse != lastrenderedREV)
+    SDL_RenderFillRect(m_mainRenderer,&Dynamic_rect);
+
+    if(g_LC_ControlState.DirForward)
     {
-        lastrenderedFWD = g_LC_ControlState.DirForward;
-        lastrenderedREV = g_LC_ControlState.DirReverse;
-
-        if(g_LC_ControlState.DirForward)
-        {
-           renderSquare(&Reverser_rect,LC_WHITE,LC_YELLOW);
-           renderText("       FORWARD", m_bigFont, LC_DARK_GREEN,Reverser_rect);
-        }
-        else if(g_LC_ControlState.DirReverse)
-        {
-            renderSquare(&Reverser_rect,LC_WHITE,LC_RED);
-            renderText("       REVERSE", m_bigFont, LC_WHITE,Reverser_rect);
-        }
-
-        else if(!g_LC_ControlState.DirForward && !g_LC_ControlState.DirReverse)
-        {
-            renderSquare(&Reverser_rect,LC_WHITE,LC_DARK_GREEN);
-            renderText("        NEUTRAL", m_bigFont, LC_WHITE,Reverser_rect);
-        }
+        renderText("FORWARD", m_bigFont, LC_RED,Dynamic_rect);
     }
+    else if(g_LC_ControlState.DirReverse)
+    {
+        renderText("REVERSE", m_bigFont, LC_RED,Dynamic_rect);
+    }
+
+    else if(!g_LC_ControlState.DirForward && !g_LC_ControlState.DirReverse)
+    {
+        renderText("NEUTRAL", m_bigFont, LC_DARK_GREEN,Dynamic_rect);
+    }
+}
+
+/*****************************
+ *
+ *  Update Speedo
+ *
+ *****************************/
+void updateSpeedo(void)
+{
+    //TODO - speedo code
 }
 
 /*****************************
@@ -570,76 +552,12 @@ void updateReverser(void)
  *****************************/
 void updateBattery(void)
 {
-    static const SDL_Rect	Battery_rect = {BAT_RECT_X,BAT_RECT_Y,BAT_RECT_W,BAT_RECT_H};    //custom numbers to match bmp
-    static float lastRenderValue = -1;
-    char str[20];
+    static const SDL_Rect	Battery_rect = {BAT_RECT_X,BAT_RECT_Y,200,25};    //custom numbers to match bmp
 
-    if(g_LC_ControlState.vbat != lastRenderValue)        //Only render if changed
-    {
-        snprintf(str,20,"     BATT: %.2fV", g_LC_ControlState.vbat);
-        lastRenderValue = g_LC_ControlState.vbat;
+    char str[15];
 
-        if(g_LC_ControlState.vbat > 23.5)
-        {
-            renderSquare(&Battery_rect,LC_WHITE,LC_DARK_GREEN);
-            renderText(str, m_bigFont, LC_WHITE, Battery_rect);
-        }
-        else if(g_LC_ControlState.vbat > 22)
-        {
-            renderSquare(&Battery_rect,LC_WHITE,LC_YELLOW);
-            renderText(str, m_bigFont, LC_DARK_GREEN, Battery_rect);
-        }
-        else
-        {
-            renderSquare(&Battery_rect,LC_WHITE,LC_RED);
-            renderText(str, m_bigFont, LC_WHITE, Battery_rect);
-        }
-    }
-}
-
-
-/*****************************
- *
- *  Update Total Amperage
- *
- *****************************/
-void updateAmperage(void)
-{
-    static const SDL_Rect	Amperage_rect = {AMP_RECT_X,AMP_RECT_Y,AMP_RECT_W,AMP_RECT_H};    //custom numbers to match bmp
-    static float lastRenderValue = -99;
-    float f;
-    char str[20];
-
-    f = g_LC_ControlState.motorAmps[0]+g_LC_ControlState.motorAmps[1]+g_LC_ControlState.motorAmps[2]+g_LC_ControlState.motorAmps[3]+g_LC_ControlState.motorAmps[4]+g_LC_ControlState.motorAmps[5];
-    if (f!= 0)
-        f = f/10;
-
-    if(f != lastRenderValue)        //Only render if changed
-    {
-        lastRenderValue = f;
-        snprintf(str,20,"     BATT: %.2fA", f);
-
-        if(f < 0)
-        {
-            renderSquare(&Amperage_rect,LC_WHITE,LC_DARK_GREEN);
-            renderText(str, m_bigFont, LC_WHITE, Amperage_rect);
-        }
-        else if (f < 10)
-        {
-            renderSquare(&Amperage_rect,LC_WHITE,LC_BLUE);
-            renderText(str, m_bigFont, LC_WHITE, Amperage_rect);
-        }
-        else if(f < 16)
-        {
-            renderSquare(&Amperage_rect,LC_WHITE,LC_YELLOW);
-            renderText(str, m_bigFont, LC_DARK_GREEN, Amperage_rect);
-        }
-        else
-        {
-            renderSquare(&Amperage_rect,LC_WHITE,LC_RED);
-            renderText(str, m_bigFont, LC_WHITE, Amperage_rect);
-        }
-    }
+    sprintf(str,"%.2f volts", g_LC_ControlState.vbat);
+    renderText(str, m_bigFont, LC_BLACK, Battery_rect);
 }
 
 /*****************************

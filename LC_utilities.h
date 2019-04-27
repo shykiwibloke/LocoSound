@@ -10,6 +10,7 @@
 #ifndef __LocoControl__LC_utilities__
 #define __LocoControl__LC_utilities__
 
+#include <sys/stat.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@
 #include "LC_globals.h"     //definitions that are common across all MPU's in the Loco Sound system
 #include "LC_configReader.h"
 #include <time.h>
+
 
 /*********************************************
  *

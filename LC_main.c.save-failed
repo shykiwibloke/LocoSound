@@ -247,7 +247,7 @@ int handleKey(SDL_KeyboardEvent key) {
             g_LC_ControlState.vbat = 24.55;
             break;
         case SDLK_F3:
-            g_LC_ControlState.vbat = 22.9;
+            g_LC_ControlState.vbat = 22.96;
             break;
         case SDLK_F4:
             g_LC_ControlState.vbat = 21.04;
