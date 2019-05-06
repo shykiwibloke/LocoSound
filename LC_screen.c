@@ -142,6 +142,10 @@ int initScreen()
 
         initVolumeControls();
 
+        //Set out the motor graph area
+        renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GRAY);   //create the background
+        renderText("  Motor Amperages ",m_msgFont,LC_WHITE,m_motorArea);
+
     }
 
     return 0;   //success
@@ -175,6 +179,7 @@ void initMotorGraph(void)
     m_maxAmps = getConfigVal("MAX_AMPS");
     if(m_maxAmps < 1) m_maxAmps = 1;        //just in case some wally sets the value wrong and causes a divide by zero!!
     m_onePercentAmps = (float) m_maxAmps / 100;
+
 
     m_motorArea.x = MOTOR_AREA_X;
     m_motorArea.y = MOTOR_AREA_Y;
@@ -255,16 +260,10 @@ void updateMotorGraphSet(void)
     //updates each Motor's graph from global value.
     //Selects RED as bar colour for drawing from motor, GREEN if battery is being charged
 
-    int             f = 0;
-    char            bartext[6] = {0}; //used to hold each text label as it is created
-    float           amps    = 0;
+    int             f           = 0;
+    char            bartext[6]  = {0}; //used to hold each text label as it is created
+    float           amps        = 0;
     static float    lastamps[6] = {0};
-
-    if (bartext[0] == 0)    //only run this the first time through
-    {
-        renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GRAY);   //create the background
-        renderText("  Motor Amperages",m_msgFont,LC_WHITE,m_motorArea);
-    }
 
     for(f=0; f<6; f++)   //iterate through the six graphs updating each and their text
     {

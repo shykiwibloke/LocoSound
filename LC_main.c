@@ -20,11 +20,7 @@ int main(int argc, char *argv[])
 {
 
 	int 	quit = 0;
-	Uint32 	lastRefresh = 0;
-	Uint32  lastTimeLog = 0;
-
-	Uint32  StartTime=0, EventServiceTime=0, ScreenServiceTime=0, SerialServiceTime=0, SoundServiceTime=0;
-
+	Uint32 	nextRefresh = 0;
 
     iniFilePaths();
 
@@ -48,14 +44,9 @@ int main(int argc, char *argv[])
         // NOTE: Serial handling depends on features specific to Linux. This app will compile and run on windows
         //   without the serial comms - and can be used with keyboard commands in a sort of simulator mode
 
-		StartTime = SDL_GetTicks();
 		actionArduinoCommand();
-        SerialServiceTime = SDL_GetTicks() - StartTime;
 
 #endif  // linux
-
-		//check for SDL Events - and process accordingly
-		StartTime = SDL_GetTicks();
 
 		while(SDL_PollEvent(&g_event)) {
 			switch(g_event.type) {
@@ -73,29 +64,13 @@ int main(int argc, char *argv[])
             }
         }
 
-        EventServiceTime = SDL_GetTicks() - StartTime;
-
-   		StartTime = SDL_GetTicks();
 		soundService();								//Service Sound Subsystem - very frequently!
-		SoundServiceTime = SDL_GetTicks() - StartTime;
 
         //Service Screen Subsystem once per 1/4 second
-		if SDL_TICKS_PASSED(SDL_GetTicks(),lastRefresh)
+		if SDL_TICKS_PASSED(SDL_GetTicks(),nextRefresh)
 		{
-            StartTime = SDL_GetTicks();
-			screenService();
-			ScreenServiceTime = SDL_GetTicks() - StartTime;
-			lastRefresh = SDL_GetTicks()+250;
-
-            if SDL_TICKS_PASSED(SDL_GetTicks(),lastTimeLog)   //inside screen condition to ensure we get its stats
-            {
-                //EventServiceTime, ScreenServiceTime, SerialServiceTime, SoundServiceTime
-                logInt("Event Service Time: ",EventServiceTime);
-                logInt("Sound Service Time: ",SoundServiceTime);
-                logInt("Serial Service Time: ",SerialServiceTime);
-                logInt("Screen Service Time: ",ScreenServiceTime);
-                lastTimeLog = SDL_GetTicks() + 10000;
-            }
+ 			screenService();
+ 			nextRefresh = SDL_GetTicks() + 250;
         }
 
 	}  //End of Main Loop
@@ -224,9 +199,7 @@ int handleKey(SDL_KeyboardEvent key) {
             break;
 
         case SDLK_x:  //quit and shut down raspi
-            closeProgram();									//Go clean up
-            system ("sudo shutdown -h now");
-            return 0;
+            return 2;
             break;
 
 		case SDLK_l:  //LOUD Volume
@@ -365,24 +338,24 @@ void initGlobals()
 
 	//Init control structure once we have our path variable and other initial directives.
 
-	g_LC_ControlState.MotorState = MOTOR_STOPPED;
-	g_LC_ControlState.vbat = 0;
-	g_LC_ControlState.motorAmps[0] = 1;
-	g_LC_ControlState.motorAmps[1] = 1;
-	g_LC_ControlState.motorAmps[2] = 1;
-	g_LC_ControlState.motorAmps[3] = 1;
-	g_LC_ControlState.motorAmps[4] = 1;
-	g_LC_ControlState.motorAmps[5] = 1;
-	g_LC_ControlState.ConsoleHealthy = false;
-	g_LC_ControlState.DirForward = false;
-	g_LC_ControlState.DirReverse = false;
-	g_LC_ControlState.DynBrakeActive = false;
-	g_LC_ControlState.DynBrakePos = 0;
-	g_LC_ControlState.ThrottleActive = false;
-	g_LC_ControlState.ThrottlePos = 0;
-	g_LC_ControlState.Emergency = false;
-	g_LC_ControlState.HornPressed = false;
-	g_LC_ControlState.speed = 0;
+	g_LC_ControlState.MotorState        = MOTOR_STOPPED;
+	g_LC_ControlState.vbat              = 0;
+	g_LC_ControlState.motorAmps[0]      = 10;
+	g_LC_ControlState.motorAmps[1]      = 20;
+	g_LC_ControlState.motorAmps[2]      = 30;
+	g_LC_ControlState.motorAmps[3]      = 40;
+	g_LC_ControlState.motorAmps[4]      = 50;
+	g_LC_ControlState.motorAmps[5]      = 60;
+	g_LC_ControlState.ConsoleHealthy    = false;
+	g_LC_ControlState.DirForward        = false;
+	g_LC_ControlState.DirReverse        = false;
+	g_LC_ControlState.DynBrakeActive    = false;
+	g_LC_ControlState.DynBrakePos       = 0;
+	g_LC_ControlState.ThrottleActive    = false;
+	g_LC_ControlState.ThrottlePos       = 0;
+	g_LC_ControlState.Emergency         = false;
+	g_LC_ControlState.HornPressed       = false;
+	g_LC_ControlState.speed             = 0;
 
 }
 
