@@ -101,9 +101,6 @@ int initScreen()
         //Initialize default renderer colour
         SDL_SetRenderDrawColor( m_mainRenderer, 0x0, 0x0, 0x0, 0x0 );
 
-        //Now load the background image into buffer
-        m_background = loadTextureFromBMP(m_mainRenderer, "BACKGROUND.BMP");
-
         //Now initialize the fonts we wish to use
         if(TTF_Init()==-1)
         {
@@ -111,10 +108,9 @@ int initScreen()
             exit(EXIT_FAILURE);
         }
 
-//        const SDL_version *link_version=TTF_Linked_Version();
-//        printf("SDL_ttf version: %d.%d.%d\n", link_version->major, link_version->minor, link_version->patch);
+        //Now open the fonts we need from the graphics path
+        setFilePath(getConfigStr("GRAPHIC_FILE_PATH"),false);
 
-        //Now open the fonts we need
         m_msgFont = TTF_OpenFont( getConfigStr("FONT_FILE"), SMALL_FONT_HEIGHT); //this opens a font style and sets a point size
         if (m_msgFont == NULL)
         {
@@ -164,23 +160,6 @@ void closeScreen(void)
     SDL_DestroyRenderer(m_mainRenderer);
 }
 
-/*****************************
- *
- * Change the current mode of the Screen to the next valid option
- *
- *****************************
-void changeScreenMode(void)
-{
-    //Just the two modes to handle right now
-    //todo - add config mode when there is one!
-
-    if(m_screenMode == MODE_GRAPHIC)
-        m_screenMode = MODE_DIAGNOSTIC;
-    else
-        m_screenMode = MODE_GRAPHIC;
-
-}
-*/
 /*****************************
  *
  * Create Motor Graph - a collection of graph objects

@@ -1,3 +1,4 @@
 rm -r LocoSound_old
 mv LocoSound LocoSound_old
 git clone https://github.com/shykiwibloke/LocoSound.git
+chmod 777 ./LocoSound/start_locosound

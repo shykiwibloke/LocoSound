@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
  	initModules();					//Init the SDL systems we rely on for machine portability
 
 
-
 	//all ready to begin the main loop
 
 	addMessageLine("Application initialization completed OK");
