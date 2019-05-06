@@ -57,12 +57,13 @@ int initScreen()
     m_mainWindow = NULL;
     m_mainRenderer   = NULL;
     m_background = NULL;
+    m_screenMode = MODE_GRAPHIC;
 
     atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
 
     // Create an application window with the following settings:
     m_mainWindow = SDL_CreateWindow(
-                       "WCRLocoController",               // window title
+                       "WCRLocoControllerV1",               // window title
                        SDL_WINDOWPOS_UNDEFINED,           // initial x position
                        SDL_WINDOWPOS_UNDEFINED,           // initial y position
                        getConfigVal("SCREEN_WIDTH"),      // width, in pixels
@@ -279,7 +280,7 @@ void updateMotorGraphSet(void)
     float           amps    = 0;
     static float    lastamps[6] = {0};
 
-    if (bartext[0] == 0)    //only run this the first time through
+    if (bartext[0] == 1)
     {
         renderSquare(&m_motorArea,LC_WHITE,LC_DARK_GRAY);   //create the background
         renderText("  Motor Amperages",m_msgFont,LC_WHITE,m_motorArea);
@@ -452,7 +453,7 @@ void updateBanner(void)
         renderSquare(&Banner_rect,LC_BLACK,LC_BLACK);
         renderText(bannerText, m_bannerFont, LC_ORANGE, Banner_rect);
         renderSquare(&Version_rect,LC_BLACK,LC_BLACK);
-        renderText("Version 2.1.0 Released 6 May 2019", m_msgFont, LC_ORANGE, Version_rect);
+        renderText("Version 2.0.0 Released 24/04/2019", m_msgFont, LC_ORANGE, Version_rect);
 
     }
 
@@ -467,11 +468,10 @@ void updateThrottle(void)
 {
     static const SDL_Rect	Throttle_rect = {THR_RECT_X,THR_RECT_Y,THR_RECT_W,THR_RECT_H};    //custom numbers to match bmp
     static char throttleText[25] = {0};
-    static int lastThrottlePos = 0;
-    static int lastDynamicPos = 0;
-    static unsigned lastMotorState = 99; //invalid value to ensure first pass works
+    static int lastThrottlePos = -2;  //illogical value to ensure first pass works
+    static int lastDynamicPos = -2;
 
-    if(g_LC_ControlState.ThrottlePos != lastThrottlePos || g_LC_ControlState.DynBrakePos != lastDynamicPos || g_LC_ControlState.MotorState != lastMotorState)
+    if(g_LC_ControlState.ThrottlePos != lastThrottlePos || g_LC_ControlState.DynBrakePos != lastDynamicPos)
     {
         //only update if something has changed
 
@@ -480,36 +480,26 @@ void updateThrottle(void)
 
         renderSquare(&Throttle_rect,LC_WHITE,LC_ORANGE);
 
-        switch(g_LC_ControlState.MotorState)
+
+        if(g_LC_ControlState.ThrottlePos == -1)
         {
-            case MOTOR_STOPPED:
-                snprintf(throttleText,25,"     SHUT DOWN");
-                break;
-
-            case MOTOR_STARTING:
-                snprintf(throttleText,25,"      STARTING");
-                break;
-
-            case MOTOR_STOPPING:
-                snprintf(throttleText,25,"      STOPPING");
-                break;
-
-            case MOTOR_RUNNING:
-                if(g_LC_ControlState.DynBrakePos > 0)
-                {
-                    snprintf(throttleText,25,"   DYN. BRAKE %d",g_LC_ControlState.DynBrakePos);
-                }
-                else if(g_LC_ControlState.ThrottlePos > 0)
-                {
-                    snprintf(throttleText,25," THROT. NOTCH %d",g_LC_ControlState.ThrottlePos);
-
-                } else {
-                    snprintf(throttleText,25,"    ENGINE IDLE");
-                }
-                break;
+            snprintf(throttleText,25,"     SHUT DOWN");
         }
+        else if(g_LC_ControlState.DynBrakePos > 0)
+        {
+            snprintf(throttleText,25,"   DYN. BRAKE %d",g_LC_ControlState.DynBrakePos);
+
+        }
+        else if(g_LC_ControlState.ThrottlePos > 0)
+        {
+            snprintf(throttleText,25," THROT. NOTCH %d",g_LC_ControlState.ThrottlePos);
+
+        } else {
+            snprintf(throttleText,25,"    ENGINE IDLE");
+        }
+
         renderText(throttleText, m_bigFont, LC_BLACK, Throttle_rect);
-    }
+        }
 }
 
 

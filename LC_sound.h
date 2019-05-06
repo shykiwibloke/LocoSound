@@ -104,17 +104,17 @@ typedef enum {
 
 //sound queue structure definition
 typedef struct {
-	char            *Qlabel;                             //points to a description of the owner of this queue
+	char            *Qlabel;                            //points to a description of the owner of this queue
 	int				channel;							//The mixer channel we are using
 	bool			IsPlaying;							//True if this queue is currently being played. False when finished.
 	bool            IsInTransition;                     //Set to true if queue is changing - e.g. engine is moving between notches
+	bool            IsLooping;                          //Set to true if queue is playing a sound loop - i.e. the last sound of the set that is infinite.
 	int			    currentItem;						//gets incremented until it points to a track that repeats or is a SF_NONE
 	Uint32			currentFadeStart;					//ByteCount to start fading out
 	Uint32			currentPlayEnd;						//BytesCount to stop playing
 	Uint8           volLeft;                            //Left stereo channel volume
 	Uint8           volRight;                           //Right stereo channel volume
-
-	Mix_Chunk		*soundChunk[LC_SOUND_QUEUE_MAX];	    //Holds pointers to memory for current sound
+	Mix_Chunk		*soundChunk[LC_SOUND_QUEUE_MAX];	//Holds pointers to memory for current sound
 	int				fadeInTime[LC_SOUND_QUEUE_MAX];	    //Length of fade in. 0 for none
 	int 			fadeOutTime[LC_SOUND_QUEUE_MAX];	//Length of fade out. 0 for none
 	int				loopCount[LC_SOUND_QUEUE_MAX];		//number of times to repeat. -1 = infinite,0 = 1, 1 = 2 etc
@@ -159,5 +159,6 @@ void showChannelSummary(void);
 void clearAllQueues(void);
 void clearQueue(LC_SoundQueue_t *pQ);
 void playQueueItem(LC_SoundQueue_t *pQ);
+void setSoundVolume();
 
 #endif

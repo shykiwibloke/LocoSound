@@ -35,7 +35,7 @@ int	        	 m_RevUp[9];							//Holds the sample start/stop points for each no
 int	             m_RevDown[9];							//Holds the sample start/stop points for each notch in revdown
 
 
-int			     m_SndThrottlePos = -1;				     //Module store for our current internal setting. Used to detect change arriving
+int			     m_SndThrottlePos = 0;				     //Module store for our current internal setting. Used to detect change arriving
 bool			 m_SndHornPressed = 0;					 //ditto
 int			     m_SndDynBrakePos = 0;					 //ditto
 
@@ -52,37 +52,109 @@ void soundService()
 {
 	// main hook to ensure sound is going. call frequently
 
-	//As Idle is treated as 'trottle' position - need a way of terminating dynamic brake fans when done
-    if (g_LC_ControlState.ThrottleActive && g_LC_ControlState.ThrottlePos != m_SndThrottlePos)
-	{
-		changeThrottle();
-	}
-
-    if (g_LC_ControlState.DynBrakeActive && g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)
-	{
-		changeDynamic();
-	}
-
-	if (g_LC_ControlState.HornPressed != m_SndHornPressed)
+    //Horn can be used at any time motor running or not (for safety)
+    if (g_LC_ControlState.HornPressed != m_SndHornPressed)
 	{
 		changeHorn();
 	}
-	//Dont play compressor sounds until we are properly in idle i.e. engine has started AND we are not decelerating still
-	if (g_LC_ControlState.ThrottlePos == 0 && g_LC_ControlState.DynBrakePos ==0 && m_EngineQueue.IsInTransition == false)
-	{
-		changeCompressor();                     //compressor runs on random time
-	}
-	else if(m_AirCompQueue.IsPlaying)
-    {
-        fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out - we are not idling any longer.
-    }
 
-	//Go service the channels that are running (incl those just changed)
-	serviceChannel(&m_EngineQueue);
-	serviceChannel(&m_TractionQueue);
-	serviceChannel(&m_DynBrakeQueue);
-	serviceChannel(&m_HornQueue);
-	serviceChannel(&m_AirCompQueue);
+    //Rest of sounds depend on current motor state - e.g. cant have engine sounds when engine starting or stopped!
+    switch(g_LC_ControlState.MotorState) {
+
+        case MOTOR_STOPPED:
+            //motor is stopped - so check on air dryer sound only
+
+            break;
+        case MOTOR_STARTING:
+            //todo - kick off starting sounds here, then watch for the IsLooping to more to Running
+            //Also stop air dryer sounds if running
+
+            if(m_EngineQueue.IsPlaying == false)
+            {
+                clearAllQueues();       //start with a clean slate - just in case.
+                queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE);
+                queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE);    //todo - dont set 'idle' until passed this point
+                queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP);
+                playQueueItem(&m_EngineQueue);
+
+                clearQueue(&m_AirCompQueue);
+                if(m_AirCompQueue.IsPlaying)
+                {
+                    fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out - we are not stopped any longer.
+                }
+            }
+            if(m_EngineQueue.IsLooping == true)
+            {
+                g_LC_ControlState.MotorState = MOTOR_RUNNING;
+                g_LC_ControlState.ThrottleActive = true;
+                snprintf(m_startBtn.textPressed,BTN_TEXT_LEN," STOP");
+            }
+
+            break;
+
+        case MOTOR_STOPPING:
+            //todo - kick off stopping sounds here, then watch for the IsLooping to more to Stopped
+
+            g_LC_ControlState.ThrottleActive = false;		//Reset controls to prevent override
+            g_LC_ControlState.DynBrakeActive = false;
+
+            if (m_EngineQueue.IsPlaying)
+            {
+                fadeOutQueue(&m_EngineQueue,m_fadeSTD);  //force current sounds to fade out gradually
+            }
+            else
+            {
+
+                //clear out current settings for the engine queue
+                clearQueue(&m_EngineQueue);
+
+
+                //Special manipulation of air compressor so it plays air dryer forever while we are shut down
+                if (m_AirCompQueue.IsPlaying)
+                {
+                    fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out gradually
+                }
+                clearQueue(&m_AirCompQueue);
+                queueSound(&m_AirCompQueue, 0, SF_AIRDRYER, 0, 100, LC_PLAY_LOOP);
+                playQueueItem(&m_AirCompQueue);
+
+                g_LC_ControlState.MotorState = MOTOR_STOPPED;
+
+            }
+            break;
+
+        case MOTOR_RUNNING:
+            //Motor running - so all the sounds can be checked
+
+            if (g_LC_ControlState.ThrottleActive && g_LC_ControlState.ThrottlePos != m_SndThrottlePos)
+            {
+                changeThrottle();
+            }
+
+            if (g_LC_ControlState.DynBrakeActive && g_LC_ControlState.DynBrakePos != m_SndDynBrakePos)
+            {
+                changeDynamic();
+            }
+
+            //Dont play compressor sounds until we are properly in idle
+            if (g_LC_ControlState.ThrottlePos == 0 && g_LC_ControlState.DynBrakePos ==0 && m_EngineQueue.IsInTransition == false)
+            {
+                changeCompressor();                     //compressor runs on random time
+            }
+            else if(m_AirCompQueue.IsPlaying)
+            {
+                fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out - we are not idling any longer.
+            }
+
+            break;
+        }
+
+   //Go service the channels that are running (incl those just changed)
+    serviceChannel(&m_HornQueue);
+    serviceChannel(&m_EngineQueue);
+    serviceChannel(&m_TractionQueue);
+    serviceChannel(&m_DynBrakeQueue);
+    serviceChannel(&m_AirCompQueue);
 
 }
 
@@ -106,53 +178,21 @@ void changeThrottle(void)
 
 	if(g_LC_ControlState.ThrottlePos > m_SndThrottlePos)   //start or speed up
 	{
-
-		if (m_SndThrottlePos <= -1)   //special case - startup sequence requested
-		{
- 			queueSound(&m_EngineQueue,0,SF_BELL,0,0,LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,SF_START,0,0,LC_PLAY_ONCE);    //todo - dont set 'idle' until passed this point
-			queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP);
-
-		}
-		else   //General Acceleration handling
-		{
-			//Queue appropriate rev-up sequence as well as new throttle setting.
-			logInt("Reving up from ",m_SndThrottlePos);
-            logInt("Reving up to ", g_LC_ControlState.ThrottlePos);
-			queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
-
-		}
+		//Queue appropriate rev-up sequence as well as new throttle setting.
+		logInt("Reving up from ",m_SndThrottlePos);
+        logInt("Reving up to ", g_LC_ControlState.ThrottlePos);
+		queuePartSound(&m_EngineQueue, 0, SF_REVUP, m_RevUp[m_SndThrottlePos], m_RevUp[g_LC_ControlState.ThrottlePos], m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
+		queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 	}
 	else   //slow down or stop
 	{
-		if ( g_LC_ControlState.ThrottlePos == -1)  //special case - stop engine
-		{
-			//Kill Engine
-			logMessage("Engine Stopped",true);
-            g_LC_ControlState.ThrottleActive = false;
-
-            //Special manipulation of air compressor so it plays air dryer forever while we are shut down
-            if (m_AirCompQueue.IsPlaying)
-            {
-                fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out gradually
-            }
-            clearQueue(&m_AirCompQueue);
-            queueSound(&m_AirCompQueue, 0, SF_AIRDRYER, 0, 100, LC_PLAY_LOOP);
-            playQueueItem(&m_AirCompQueue);
-		}
-		else  //General Deceleration handling
-		{
-			logInt("Rev down from ",m_SndThrottlePos);
-			logInt("Rev down to ", g_LC_ControlState.ThrottlePos);
-			queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
-			queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
-
-		}
+		logInt("Rev down from ",m_SndThrottlePos);
+		logInt("Rev down to ", g_LC_ControlState.ThrottlePos);
+		queuePartSound(&m_EngineQueue, 0, SF_REVDOWN, m_RevDown[m_SndThrottlePos], m_RevDown[g_LC_ControlState.ThrottlePos],  m_fadeShort, m_fadeSTD, LC_PLAY_ONCE);
+		queueSound(&m_EngineQueue,1,g_LC_ControlState.ThrottlePos,m_fadeSTD,m_fadeSTD,LC_PLAY_LOOP);
 	}
 
 	//having set up a queue - trigger the playing of the first sound (others will follow from service channel)
-	m_EngineQueue.IsInTransition = true;          //signal to other systems we are in the process of changing the motor
 	playQueueItem(&m_EngineQueue);
 	m_SndThrottlePos = g_LC_ControlState.ThrottlePos;
 }
@@ -294,6 +334,7 @@ void changeCompressor(void)
         pQ->fadeInTime[index] = fadeIn;
         pQ->fadeOutTime[index] = fadeOut;
         pQ->loopCount[index] = loopCount;
+
 	}
 }
 
@@ -312,6 +353,9 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 				const Uint32 fadeOut,
 				const int loopCount )
 {
+
+        //Called to extract an exerpt from a longer sound
+        //Used exclusively for reving up and down in this version of the code
 
     if(m_SoundSamples[sound] != NULL)
 	{
@@ -354,39 +398,40 @@ void queuePartSound(LC_SoundQueue_t *pQ,
 
 /*********************************************
 *
-* StartQueuePlaying
+* playQueueItem
 *
 *********************************************/
 void playQueueItem(LC_SoundQueue_t *pQ)
 {
 
-    //At least the first sound chunk needs to be not null or the code will crash
    if(pQ->soundChunk[0] != NULL)
    {
-       logString("playQueueItem() for ",pQ->Qlabel);
-       logInt("playQueueItem() item ",pQ->currentItem);
+        //set fade out parameters for later checking (time based on actual time NOW - being the time we started this chunk playing)
 
-        //set fade out parameters for later checking (time based on actual time NOW - being the time we started this playing)
-
-    //pQ->soundChunk[pQ->currentItem]->alen - put this in a subroutine called getchunklen(pQ) - which returns zero IF sund chunk is null
-
-        if ((pQ->loopCount[pQ->currentItem] > -1) && (pQ->soundChunk[pQ->currentItem]->alen > 0))
+        if ((pQ->loopCount[pQ->currentItem] != LC_PLAY_LOOP) && (pQ->soundChunk[pQ->currentItem]->alen > 0))  //also guard against divide by zero
         {
             pQ->currentPlayEnd = SDL_GetTicks();
             pQ->currentPlayEnd += ((pQ->soundChunk[pQ->currentItem]->alen / LC_SOUND_SAMPLE_RATE )*250); //milliseconds from bytes
             pQ->currentFadeStart = pQ->currentPlayEnd - pQ->fadeOutTime[pQ->currentItem];
+            pQ->IsInTransition = true;          //signal to other systems we are in the process of changing the motor revs
+            pQ->IsLooping = false;
+
         } else {
+            //we are setting up a looping sound so ensure end and fade start values are 'disabled' by huge value
             pQ->currentPlayEnd = 99999999;
             pQ->currentFadeStart = 99999999;
+            pQ->IsLooping = true;               //Can only get here on loop. Single or multiple play sounds do not come through here.
+            pQ->IsInTransition = false;         //playing a looping sound guarantees we are no longer in transition
         }
 
-        //Play first queue sound on next available channel
+        //Play sound on next available channel and retrieve the channel allocated for later reference
         pQ->channel = Mix_FadeInChannel(-1, pQ->soundChunk[pQ->currentItem],pQ->loopCount[pQ->currentItem], pQ->fadeInTime[pQ->currentItem]);
 
-
-        if (pQ->channel == -1)
+        if (pQ->channel == -1)  //no channel was allocated, so playing did not start
         {
             pQ->IsPlaying = false;
+            pQ->IsLooping = false;
+            pQ->IsInTransition = false;
             logInt("playQueueItem() Error playing sound ",pQ->currentItem);
             logInt("playQueueItem() On channel ",pQ->channel);
             logString("playQueueItem() For ",pQ->Qlabel);
@@ -397,7 +442,10 @@ void playQueueItem(LC_SoundQueue_t *pQ)
             Mix_SetPanning(pQ->channel,pQ->volLeft,pQ->volRight);
 
             pQ->IsPlaying = true;
+            logString("playQueueItem() for ",pQ->Qlabel);
             logInt("playQueueItem() Assigned to channel ",pQ->channel);
+            logInt("playQueueItem() IsInTransition ",pQ->IsInTransition);
+            logInt("playQueueItem() IsLooping ",pQ->IsLooping);
 
         }
     }
@@ -416,6 +464,7 @@ void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut)
 	pQ->loopCount[pQ->currentItem] = 0;
 	pQ->soundChunk[(pQ->currentItem)+1] = NULL;
 
+    logString("fadeOutQueue() for ",pQ->Qlabel);
 	logInt("fadeOutQueue() channel ",pQ->channel);
 	serviceChannel(pQ);
 }
@@ -439,7 +488,8 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		//has current sound finished?
 		if (SDL_TICKS_PASSED(currentTime,pQ->currentPlayEnd) ) //check for complete end-of-sound b4 checking fade out times
 		{
-			logInt("serviceChannel() Sound finished on channel ",pQ->channel);
+            logString("serviceChannel() for ",pQ->Qlabel);
+            logInt("serviceChannel() Sound finished on channel ",pQ->channel);
 			finishPlayingSound(pQ);
 
 		}
@@ -468,11 +518,15 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 	{
 		//If sound is complete and there are no more in this queue - then shut the queue down here even though we might be still fading
 		pQ->IsPlaying = false;
+		pQ->IsInTransition = false;
+		pQ->IsLooping = false;
 		logString("finishPlayingSound() Queue reached end ",pQ->Qlabel);
 	}
 	else if(next == LC_SOUND_QUEUE_MAX)  //IF we are at the end of the queue entirely
 	{
 		pQ->IsPlaying = false;
+        pQ->IsInTransition = false;
+		pQ->IsLooping = false;
         logString("finishPlayingSound() Queue reached max samples ",pQ->Qlabel);
 
 	}
@@ -482,11 +536,6 @@ void finishPlayingSound(LC_SoundQueue_t *pQ)
 		logString("finishPlayingSound() Queuing next for ",pQ->Qlabel);
 
         next++;
-
-   		if (pQ->soundChunk[next] == NULL || next == LC_SOUND_QUEUE_MAX)
-            pQ->IsInTransition = false;                                 //next sound is the last, so will be no longer in transition
-
-
 		pQ->currentItem++;      //inc array index and start the next sound
 		playQueueItem(pQ);
 	}
@@ -558,26 +607,10 @@ void showChannelSummary(void)
                Mix_FadeOutChannel(f,1);
     }
 
-    //Ensure the queues are in their default state
-	m_EngineQueue.Qlabel = Q_LABEL_E;				//Engine Q. (tags are only there to make debugging output easier to read)
-	m_EngineQueue.volLeft = getConfigVal("VOL_ENGINE_LEFT");
-	m_EngineQueue.volRight = getConfigVal("VOL_ENGINE_RIGHT");
 	clearQueue(&m_EngineQueue);
-	m_AirCompQueue.Qlabel = Q_LABEL_A;				//Air Comp Q
-	m_AirCompQueue.volLeft = getConfigVal("VOL_AIRCOMPRESSOR_LEFT");
-    m_AirCompQueue.volRight = getConfigVal("VOL_AIRCOMPRESSOR_RIGHT");
 	clearQueue(&m_AirCompQueue);
-	m_DynBrakeQueue.Qlabel = Q_LABEL_D;			//Dynamic Fans
-	m_DynBrakeQueue.volLeft = getConfigVal("VOL_DYNAMIC_LEFT");
-    m_DynBrakeQueue.volRight = getConfigVal("VOL_DYNAMIC_RIGHT");
 	clearQueue(&m_DynBrakeQueue);
-	m_HornQueue.Qlabel = Q_LABEL_H;				//Horn Q
-	m_HornQueue.volLeft = getConfigVal("VOL_HORN_LEFT");
-    m_HornQueue.volRight = getConfigVal("VOL_HORN_RIGHT");
 	clearQueue(&m_HornQueue);
-	m_TractionQueue.Qlabel = Q_LABEL_T;			//Traction Blowers
-	m_TractionQueue.volLeft = getConfigVal("VOL_TRACTION_LEFT");
-    m_TractionQueue.volRight = getConfigVal("VOL_TRACTION_RIGHT");
 	clearQueue(&m_TractionQueue);
 
  }
@@ -595,6 +628,7 @@ void clearQueue(LC_SoundQueue_t *pQ)
 
 	pQ->IsPlaying = false;
 	pQ->IsInTransition = false;
+	pQ->IsLooping = false;
 	pQ->currentItem = 0;
 	pQ->currentFadeStart = 0;
 	pQ->currentPlayEnd = 0;
@@ -619,6 +653,83 @@ void clearQueue(LC_SoundQueue_t *pQ)
 
 }
 
+/*********************************************
+ *
+ * SetSound Volume - checks the volume flags and clears the specified queue to proper default state
+ *
+ *********************************************/
+
+void setSoundVolume()
+{
+    //Set Sound Volumes to full default values first.
+
+	m_EngineQueue.volLeft = getConfigVal("VOL_ENGINE_LEFT");
+	m_EngineQueue.volRight = getConfigVal("VOL_ENGINE_RIGHT");
+
+	m_AirCompQueue.volLeft = getConfigVal("VOL_AIRCOMPRESSOR_LEFT");
+    m_AirCompQueue.volRight = getConfigVal("VOL_AIRCOMPRESSOR_RIGHT");
+
+	m_DynBrakeQueue.volLeft = getConfigVal("VOL_DYNAMIC_LEFT");
+    m_DynBrakeQueue.volRight = getConfigVal("VOL_DYNAMIC_RIGHT");
+
+	m_TractionQueue.volLeft = getConfigVal("VOL_TRACTION_LEFT");
+    m_TractionQueue.volRight = getConfigVal("VOL_TRACTION_RIGHT");
+
+	m_HornQueue.volLeft = getConfigVal("VOL_HORN_LEFT");     //NB: Horn never gets quieter - safety issue
+    m_HornQueue.volRight = getConfigVal("VOL_HORN_RIGHT");
+
+
+    if (m_volumeHalfBtn.IsPressed == true)     //Now halve config values if half volume set
+    {
+        m_EngineQueue.volLeft = (m_EngineQueue.volLeft >> 1);
+        m_EngineQueue.volRight = (m_EngineQueue.volRight >> 1);
+
+        m_AirCompQueue.volLeft = (m_AirCompQueue.volLeft >> 1);
+        m_AirCompQueue.volRight = (m_AirCompQueue.volRight >> 1);
+
+        m_DynBrakeQueue.volLeft = (m_DynBrakeQueue.volLeft >> 1);
+        m_DynBrakeQueue.volRight = (m_DynBrakeQueue.volRight >> 1);
+
+        m_TractionQueue.volLeft =  (m_TractionQueue.volLeft >> 1);
+        m_TractionQueue.volRight = (m_TractionQueue.volRight >> 1);
+    }
+    else if (m_volumeOffBtn.IsPressed == true)      //Clear sound queues only (No point in queing sounds or changing volumes!)
+    {
+        m_EngineQueue.volLeft = 2;
+        m_EngineQueue.volRight = 2;
+
+        m_AirCompQueue.volLeft = 2;
+        m_AirCompQueue.volRight = 2;
+
+        m_DynBrakeQueue.volLeft = 2;
+        m_DynBrakeQueue.volRight = 2;
+
+        m_TractionQueue.volLeft =  2;
+        m_TractionQueue.volRight = 2;
+    }
+
+    // See what is playing currently and set their channel volumes accordingly (loud or med)
+
+    if(m_EngineQueue.IsPlaying == true)
+    {
+       Mix_SetPanning(m_EngineQueue.channel,m_EngineQueue.volLeft,m_EngineQueue.volRight);
+    }
+
+    if(m_AirCompQueue.IsPlaying == true)
+    {
+       Mix_SetPanning(m_AirCompQueue.channel,m_AirCompQueue.volLeft,m_AirCompQueue.volRight);
+    }
+
+    if(m_DynBrakeQueue.IsPlaying == true)
+    {
+       Mix_SetPanning(m_DynBrakeQueue.channel,m_DynBrakeQueue.volLeft,m_DynBrakeQueue.volRight);
+    }
+
+    if(m_TractionQueue.IsPlaying == true)
+    {
+       Mix_SetPanning(m_TractionQueue.channel,m_TractionQueue.volLeft,m_TractionQueue.volRight);
+    }
+}
 
 /*********************************************
 *
@@ -671,6 +782,13 @@ int initAudio(void)
     LC_LOADWAV(F_AIRDRYER, SF_AIRDRYER);
 	LC_LOADWAV(F_TRACTION,SF_TRACTION);
 
+    //Ensure the queues are in their default state
+	m_EngineQueue.Qlabel = Q_LABEL_E;			//Engine Q. (tags are only there to make debugging output easier to read)
+	m_AirCompQueue.Qlabel = Q_LABEL_A;			//Air Comp Q
+	m_DynBrakeQueue.Qlabel = Q_LABEL_D;			//Dynamic Fans
+	m_HornQueue.Qlabel = Q_LABEL_H;				//Horn Q
+	m_TractionQueue.Qlabel = Q_LABEL_T;			//Traction Blowers
+
 	//Load up the Notch points in the Rev Up / Rev Down control Arrays from the config file
 	m_RevUp[0] = getConfigVal("REV_UP_IDLE");
 	m_RevUp[1] = getConfigVal("REV_UP_NOTCH1");
@@ -697,6 +815,7 @@ int initAudio(void)
 	m_fadeLong 		= getConfigVal("FADE_LONG");
 
     clearAllQueues();
+    setSoundVolume();
 
 	atexit(closeAudio);    					//memory will be freed when app exits properly
 

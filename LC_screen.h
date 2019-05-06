@@ -124,12 +124,6 @@ static const SDL_Color LC_PURPLE	  =	{0x80,0x00,0x80,0xff};
 static const SDL_Color LC_BROWN		  =	{0x99,0x66,0x33,0xff};
 static const SDL_Color LC_ALMOND	  = {0xff,0xde,0xad,0xff};
 
-typedef enum {
-    MODE_GRAPHIC,                   //Screen is currently showing graphics (default)
-    MODE_DIAGNOSTIC,                       //Screen is currently showing system messages
-    MODE_CONFIG,                    //System is currently displaying config options/info
-} LC_ScreenMode_t;
-
 typedef struct {
 	SDL_Rect		rect;			//x,y,w,h of the button
     SDL_Color       buttonColour;
@@ -167,7 +161,6 @@ SDL_Texture*			m_background;		        //background graphics for the main screen
 TTF_Font*				m_msgFont;		            //The font we use for all status messages
 TTF_Font*				m_bigFont;			        //Large font for throttle setting etc
 TTF_Font*               m_bannerFont;               //For Headline only
-LC_ScreenMode_t         m_screenMode;               //The current mode of the screen
 SDL_Rect                m_msgArea;                  //the rectangle used to display messages
 SDL_Rect                m_motorArea;                //the rectangle used to display the motor graph
 LC_MsgLine_t            m_msgTempLine;              //A temporary buffer for assembling a message line with variables

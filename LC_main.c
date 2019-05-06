@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	//all ready to begin the main loop
 
 	addMessageLine("Application initialization completed OK");
-    addMessageLine("Press 'F1' for a list of keyboard commands");
+    //addMessageLine("Press 'F1' for a list of keyboard commands");
 	//Main Loop
 	while(!quit) {
 
@@ -193,19 +193,20 @@ int handleKey(SDL_KeyboardEvent key) {
 			break;
 
 		case SDLK_s:
-		    //todo - make this start / stop and cant stop until going properly
-		    if (g_LC_ControlState.ThrottleActive == false)
-			{
-			    g_LC_ControlState.ThrottleActive = true;		//make throttle active and trigger start
-                g_LC_ControlState.DynBrakeActive = false;
-                g_LC_ControlState.ThrottlePos = 0;
-                addMessageLine("Starting Prime Mover...");
+		    // start / stop and cant stop until going properly so if we are busy starting or stopping - button ignored
+            if (m_startBtn.IsPressed == false && g_LC_ControlState.MotorState == MOTOR_STOPPED)
+            {
+                g_LC_ControlState.MotorState = MOTOR_STARTING;
                 m_startBtn.IsPressed = true;
-			} else {
-                g_LC_ControlState.ThrottlePos = -1;
-                addMessageLine("Stopping Prime Mover...");
+                snprintf(m_startBtn.textPressed,BTN_TEXT_LEN,"  Wait...");
+
+            }
+            else if (m_startBtn.IsPressed == true && g_LC_ControlState.MotorState == MOTOR_RUNNING)
+            {
+                g_LC_ControlState.MotorState = MOTOR_STOPPING;
                 m_startBtn.IsPressed = false;
-			}
+                snprintf(m_startBtn.textPressed,BTN_TEXT_LEN,"  Wait...");
+            }
 			break;
 
 		case SDLK_t:
@@ -228,6 +229,7 @@ int handleKey(SDL_KeyboardEvent key) {
             m_volumeFullBtn.IsPressed = true;
             m_volumeOffBtn.IsPressed = false;
             m_volumeHalfBtn.IsPressed = false;
+            setSoundVolume();
             break;
 
         case SDLK_m:  //MEDIUM Volume
@@ -235,6 +237,7 @@ int handleKey(SDL_KeyboardEvent key) {
             m_volumeFullBtn.IsPressed = false;
             m_volumeHalfBtn.IsPressed = true;
             m_volumeOffBtn.IsPressed = false;
+            setSoundVolume();
             break;
 
         case SDLK_o:  //MEDIUM Volume
@@ -242,6 +245,7 @@ int handleKey(SDL_KeyboardEvent key) {
             m_volumeFullBtn.IsPressed = false;
             m_volumeHalfBtn.IsPressed = false;
             m_volumeOffBtn.IsPressed = true;
+            setSoundVolume();
             break;
         case SDLK_F2:
             g_LC_ControlState.vbat = 24.55;
@@ -356,6 +360,7 @@ void initGlobals()
 
 	//Init control structure once we have our path variable and other initial directives.
 
+	g_LC_ControlState.MotorState = MOTOR_STOPPED;
 	g_LC_ControlState.vbat = 0;
 	g_LC_ControlState.motorAmps[0] = 1;
 	g_LC_ControlState.motorAmps[1] = 1;
@@ -369,7 +374,7 @@ void initGlobals()
 	g_LC_ControlState.DynBrakeActive = false;
 	g_LC_ControlState.DynBrakePos = 0;
 	g_LC_ControlState.ThrottleActive = false;
-	g_LC_ControlState.ThrottlePos = -1;
+	g_LC_ControlState.ThrottlePos = 0;
 	g_LC_ControlState.Emergency = false;
 	g_LC_ControlState.HornPressed = false;
 	g_LC_ControlState.speed = 0;

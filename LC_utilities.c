@@ -25,7 +25,8 @@ int setFilePath(const char *path, bool forceCreate)
         {
             #ifdef linux
             if(mkdir(path,S_IRWXU | S_IRWXG | S_IRWXO) != 0)
-            #elifdef WIN32
+            #endif // linux         //Raspi version of codeblocks does not support #elifdef
+            #ifdef WIN32
             if(mkdir(path) != 0)
             #endif // WIN32
 

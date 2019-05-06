@@ -25,15 +25,16 @@ void handleMouseDown(void)
 	if (g_event.button.button == SDL_BUTTON_RIGHT)
 	{
 		//show where we are
-		if(g_Debug = true)
+		if(g_Debug == true) {
             fprintf(stderr, "Right Mouse Button was pressed at x:%d, y:%d \n",g_event.button.x,g_event.button.y);
+        }
 	}
 	else if (g_event.button.button == SDL_BUTTON_LEFT)
 	{
 		//DEBUG - show where we are
-		if(g_Debug = true)
+		if(g_Debug == true){
             fprintf(stderr, "Left Mouse Button was pressed at x:%d, y:%d \n",g_event.button.x,g_event.button.y);
-
+		}
 		actionClick(g_event.button.x,g_event.button.y);
 
 
