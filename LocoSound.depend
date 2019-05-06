@@ -616,7 +616,7 @@
 1556491478 source:c:\users\chris\documents\github\locosound\lc_utilities.c
 	"LC_utilities.h"
 
-1557103147 source:c:\users\chris\documents\github\locosound\lc_main.c
+1557107479 source:c:\users\chris\documents\github\locosound\lc_main.c
 	"LC_main.h"
 
 1556060296 c:\users\chris\documents\github\locosound\lc_main.h
@@ -662,7 +662,7 @@
 	"LC_configReader.h"
 	"LC_screen.h"
 
-1557005208 source:c:\users\chris\documents\github\locosound\lc_screen.c
+1557107941 source:c:\users\chris\documents\github\locosound\lc_screen.c
 	"LC_screen.h"
 
 1557098418 source:c:\users\chris\documents\github\locosound\lc_sound.c

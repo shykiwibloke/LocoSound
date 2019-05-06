@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 				case SDL_MOUSEBUTTONDOWN:       //Includes touch screen events
 					handleMouseDown();
 					break;
-			}
-		}
+            }
+        }
 
         EventServiceTime = SDL_GetTicks() - StartTime;
 
@@ -221,6 +221,12 @@ int handleKey(SDL_KeyboardEvent key) {
 		case SDLK_q:  //quit application
 		    logMessage("Quitting Application at user request",true);
 			rtn = 1;
+            break;
+
+        case SDLK_x:  //quit and shut down raspi
+            closeProgram();									//Go clean up
+            system ("sudo shutdown -h now");
+            return 0;
             break;
 
 		case SDLK_l:  //LOUD Volume

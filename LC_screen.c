@@ -58,7 +58,14 @@ int initScreen()
     m_mainRenderer   = NULL;
     m_background = NULL;
 
+    Uint32 windowFlags = (SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+
     atexit(closeScreen);  //setup exit disposal of memory hungry objects and resources
+
+    //if fullscreen requested then set to fullscreen
+    if(strncmp(getConfigStr("SCREEN_MAX"),"YES",3) == 0)
+        windowFlags = (windowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP);
+
 
     // Create an application window with the following settings:
     m_mainWindow = SDL_CreateWindow(
@@ -67,8 +74,7 @@ int initScreen()
                        SDL_WINDOWPOS_UNDEFINED,           // initial y position
                        getConfigVal("SCREEN_WIDTH"),      // width, in pixels
                        getConfigVal("SCREEN_HEIGHT"),     // height, in pixels
-                       SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
-                   );
+                       windowFlags);
 
     // Check that the window was successfully created
     if (m_mainWindow == NULL)
@@ -81,10 +87,6 @@ int initScreen()
     }
     else
     {
-
-        //if fullscreen requested then set to fullscreen
-        if(strncmp(getConfigStr("SCREEN_MAX"),"YES",3) == 0)
-            SDL_SetWindowFullscreen(m_mainWindow,SDL_WINDOW_FULLSCREEN_DESKTOP);
 
         //Create renderer for window
         m_mainRenderer = SDL_CreateRenderer( m_mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE );
