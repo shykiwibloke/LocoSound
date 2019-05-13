@@ -432,7 +432,7 @@ void updateBanner(void)
         renderSquare(&Banner_rect,LC_BLACK,LC_BLACK);
         renderText(bannerText, m_bannerFont, LC_ORANGE, Banner_rect);
         renderSquare(&Version_rect,LC_BLACK,LC_BLACK);
-        renderText("Version 2.1.0 Released 6 May 2019", m_msgFont, LC_ORANGE, Version_rect);
+        renderText("Version 2.2.0 Released 13 May 2019", m_msgFont, LC_ORANGE, Version_rect);
 
     }
 
@@ -475,7 +475,11 @@ void updateThrottle(void)
                 break;
 
             case MOTOR_RUNNING:
-                if(g_LC_ControlState.DynBrakePos > 0)
+                if(g_LC_ControlState.DynBrakePos > 7)
+                {
+                    snprintf(throttleText,25,"   EMERGENCY");
+                }
+                else if(g_LC_ControlState.DynBrakePos > 0)
                 {
                     snprintf(throttleText,25,"   DYN. BRAKE %d",g_LC_ControlState.DynBrakePos);
                 }

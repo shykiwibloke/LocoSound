@@ -205,8 +205,8 @@ void changeDynamic(void)
 {
 
     logMessage("changeDynamic()",true);
-    //if dynamic brake is NOT currently playing and lever is NOT at idle
-	if( !m_DynBrakeQueue.IsPlaying && g_LC_ControlState.DynBrakePos != 0)
+    //if dynamic brake is NOT currently playing and lever is NOT at idle or Notch 1 (used to 'fiddle' the speed in coasting mode)
+	if( !m_DynBrakeQueue.IsPlaying && g_LC_ControlState.DynBrakePos > 1 && g_LC_ControlState.DynBrakePos < 8)
 	{
 		//startup dyn braking - stays the same irrespective of dyn brake handle position
 		clearQueue(&m_DynBrakeQueue);
@@ -218,8 +218,14 @@ void changeDynamic(void)
 
     //Traction Motor Blowers
 
+    //if moving to position 1, idle or 8 (remember 8 is an emergency position)
+    if  (g_LC_ControlState.DynBrakePos < 2 || g_LC_ControlState.DynBrakePos > 7)
+    {
+        fadeOutQueue(&m_DynBrakeQueue,m_fadeSTD);  //force current sounds to fade out gradually
+        fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+    }
     //if currently < 5 and moving to 5 or greater
-    if  (g_LC_ControlState.DynBrakePos >= 5 && m_SndDynBrakePos < 5)				//traction sound should play when traction motors are working
+    else if  (g_LC_ControlState.DynBrakePos > 4 && m_SndDynBrakePos < 5)				//traction sound should play when traction motors are working
     {
         clearQueue(&m_TractionQueue);
         queueSound(&m_TractionQueue, 0, SF_TRACTION, m_fadeLong, 0, LC_PLAY_LOOP);
@@ -231,14 +237,8 @@ void changeDynamic(void)
     {
         if (m_TractionQueue.IsPlaying)
         {
-            fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
+            fadeOutQueue(&m_TractionQueue,m_fadeLong);  //force current sounds to fade out gradually
         }
-    }
-    //if moving to zero
-    else if  (g_LC_ControlState.DynBrakePos == 0)
-    {
-        fadeOutQueue(&m_DynBrakeQueue,m_fadeLong);  //force current sounds to fade out gradually
-        fadeOutQueue(&m_TractionQueue,m_fadeSTD);  //force current sounds to fade out gradually
     }
 
 	m_SndDynBrakePos = g_LC_ControlState.DynBrakePos;
