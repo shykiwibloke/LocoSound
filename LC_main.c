@@ -218,22 +218,14 @@ int handleKey(SDL_KeyboardEvent key) {
             setSoundVolume();
             break;
 
-        case SDLK_o:  //MEDIUM Volume
+        case SDLK_o:  //Off Volume
 
             m_volumeFullBtn.IsPressed = false;
             m_volumeHalfBtn.IsPressed = false;
             m_volumeOffBtn.IsPressed = true;
             setSoundVolume();
             break;
-        case SDLK_F2:
-            g_LC_ControlState.vbat = 24.55;
-            break;
-        case SDLK_F3:
-            g_LC_ControlState.vbat = 22.9;
-            break;
-        case SDLK_F4:
-            g_LC_ControlState.vbat = 21.04;
-            break;
+
  		default:
 		    logInt("Unknown command received ",key.keysym.sym);
 			break;
@@ -318,12 +310,12 @@ void actionArduinoCommand(void)
             }
 			break;
 
-		case 'E'            //Motors Enabled switch message from Arduino
+		case 'E':            //Motors Enabled switch message from Arduino
             g_LC_ControlState.MotorsEnabled = strtol(&cmd_arg,NULL,10);
             break;
 
-		case 'B'            //dynamic Brake switch message from Arduino
-            g_LC_ControlState.DynamicEnabled = strtol(&cmd_arg,NULL,10)
+		case 'B':            //dynamic Brake switch message from Arduino
+            g_LC_ControlState.DynamicEnabled = strtol(&cmd_arg,NULL,10);
             break;
 
 		default:

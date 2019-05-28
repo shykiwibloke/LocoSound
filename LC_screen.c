@@ -424,9 +424,9 @@ void initVolumeControls(void)
  *****************************/
 void updateBanner(void)
 {
-    static const SDL_Rect	Banner_rect = {BANNER_RECT_X,BANNER_RECT_Y,BANNER_RECT_W,BANNER_RECT_H};
-    static const SDL_Rect   Version_rect = {VER_RECT_X,VER_RECT_Y,VER_RECT_W,VER_RECT_H};
-    static char bannerText[50] = {0};
+    static SDL_Rect	Banner_rect = {BANNER_RECT_X,BANNER_RECT_Y,BANNER_RECT_W,BANNER_RECT_H};
+    static SDL_Rect Version_rect = {VER_RECT_X,VER_RECT_Y,VER_RECT_W,VER_RECT_H};
+    static char     bannerText[50] = {0};
 
 
     if(bannerText[0] == '\0')       //ensures routine only called once.

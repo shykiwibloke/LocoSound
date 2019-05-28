@@ -9,7 +9,7 @@
 #ifndef LocoControl_LC_globals_h
 #define LocoControl_LC_globals_h
 
-#define PROGRAM_VERSION "Version 2.3.0 Released 28 May 2019\0"
+#define PROGRAM_VERSION "Version 2.3.1 Released 28 May 2019\0"
 
 #include <stdbool.h>
 

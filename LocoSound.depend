@@ -596,7 +596,7 @@
 	"LC_configReader.h"
 	<time.h>
 
-1559009006 c:\users\chris\documents\github\locosound\lc_globals.h
+1559020408 c:\users\chris\documents\github\locosound\lc_globals.h
 	<stdbool.h>
 
 1556403492 source:c:\users\chris\documents\github\locosound\lc_configreader.c
@@ -662,7 +662,7 @@
 	"LC_configReader.h"
 	"LC_screen.h"
 
-1559008898 source:c:\users\chris\documents\github\locosound\lc_screen.c
+1559020443 source:c:\users\chris\documents\github\locosound\lc_screen.c
 	"LC_screen.h"
 
 1557725468 source:c:\users\chris\documents\github\locosound\lc_sound.c
