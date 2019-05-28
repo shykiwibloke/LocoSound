@@ -30,6 +30,8 @@ void screenService(void)
             updateReverser();
             updateBattery();
             updateAmperage();
+            updateDynOnIndicator();
+            updateMtrsOnIndicator();
             updateButton(&m_startBtn);
             updateButton(&m_volumeFullBtn);
             updateButton(&m_volumeHalfBtn);
@@ -414,6 +416,7 @@ void initVolumeControls(void)
 
 
 }
+
 /*****************************
  *
  *  Update Banner
@@ -432,7 +435,9 @@ void updateBanner(void)
         renderSquare(&Banner_rect,LC_BLACK,LC_BLACK);
         renderText(bannerText, m_bannerFont, LC_ORANGE, Banner_rect);
         renderSquare(&Version_rect,LC_BLACK,LC_BLACK);
-        renderText("Version 2.2.0 Released 13 May 2019", m_msgFont, LC_ORANGE, Version_rect);
+        renderText(PROGRAM_VERSION, m_msgFont, LC_ORANGE, Version_rect);
+
+        registerCommand(&Banner_rect, "x");			//tell the mouse handler about our hidden quit button
 
     }
 
@@ -458,41 +463,52 @@ void updateThrottle(void)
         lastThrottlePos = g_LC_ControlState.ThrottlePos;
         lastDynamicPos = g_LC_ControlState.DynBrakePos;
 
-        renderSquare(&Throttle_rect,LC_WHITE,LC_ORANGE);
 
         switch(g_LC_ControlState.MotorState)
         {
             case MOTOR_STOPPED:
-                snprintf(throttleText,25,"     SHUT DOWN");
+                renderSquare(&Throttle_rect,LC_WHITE,LC_ORANGE);
+                snprintf(throttleText,25,"      OFF LINE");
+                renderText(throttleText, m_bigFont, LC_BLACK, Throttle_rect);
                 break;
 
             case MOTOR_STARTING:
-                snprintf(throttleText,25,"      STARTING");
+                renderSquare(&Throttle_rect,LC_WHITE,LC_DARK_GRAY);
+                snprintf(throttleText,25,"       STARTING");
+                renderText(throttleText, m_bigFont, LC_WHITE, Throttle_rect);
                 break;
 
             case MOTOR_STOPPING:
-                snprintf(throttleText,25,"      STOPPING");
+                renderSquare(&Throttle_rect,LC_WHITE,LC_DARK_GRAY);
+                snprintf(throttleText,25,"       STOPPING");
+                renderText(throttleText, m_bigFont, LC_WHITE, Throttle_rect);
                 break;
 
             case MOTOR_RUNNING:
                 if(g_LC_ControlState.DynBrakePos > 7)
                 {
-                    snprintf(throttleText,25,"   EMERGENCY");
+                    renderSquare(&Throttle_rect,LC_WHITE,LC_RED);
+                    snprintf(throttleText,25,"    EMERGENCY");
+                    renderText(throttleText, m_bigFont, LC_WHITE, Throttle_rect);
                 }
                 else if(g_LC_ControlState.DynBrakePos > 0)
                 {
+                    renderSquare(&Throttle_rect,LC_WHITE,LC_BLUE);
                     snprintf(throttleText,25,"   DYN. BRAKE %d",g_LC_ControlState.DynBrakePos);
+                    renderText(throttleText, m_bigFont, LC_WHITE, Throttle_rect);
                 }
                 else if(g_LC_ControlState.ThrottlePos > 0)
                 {
+                    renderSquare(&Throttle_rect,LC_WHITE,LC_YELLOW);
                     snprintf(throttleText,25," THROT. NOTCH %d",g_LC_ControlState.ThrottlePos);
-
+                    renderText(throttleText, m_bigFont, LC_BLACK, Throttle_rect);
                 } else {
+                    renderSquare(&Throttle_rect,LC_WHITE,LC_DARK_GREEN);
                     snprintf(throttleText,25,"    ENGINE IDLE");
+                    renderText(throttleText, m_bigFont, LC_WHITE, Throttle_rect);
                 }
                 break;
         }
-        renderText(throttleText, m_bigFont, LC_BLACK, Throttle_rect);
     }
 }
 
@@ -613,6 +629,50 @@ void updateAmperage(void)
     }
 }
 
+
+/*****************************
+ *
+ *  Update Dynamic Indicator
+ *
+ *****************************/
+void updateDynOnIndicator(void)
+{
+    static const SDL_Rect	DynOn_rect = {DYN_ON_RECT_X,DYN_ON_RECT_Y,DYN_ON_RECT_W,DYN_ON_RECT_H};    //custom numbers to match bmp
+    const char str[] = "    DYN\0";
+
+    if(g_LC_ControlState.DynamicEnabled == true)
+    {
+        renderSquare(&DynOn_rect,LC_WHITE,LC_BLUE);
+        renderText(str, m_bigFont, LC_WHITE, DynOn_rect);
+    }
+    else
+    {
+        renderSquare(&DynOn_rect,LC_DARK_GRAY,LC_DARK_GRAY);
+        renderText(str, m_bigFont, LC_WHITE, DynOn_rect);
+    }
+
+}
+/*****************************
+ *
+ *  Update Motors On Indicator
+ *
+ *****************************/
+void updateMtrsOnIndicator(void)
+{
+    static const SDL_Rect	MtrsOn_rect = {MTR_ON_RECT_X,MTR_ON_RECT_Y,MTR_ON_RECT_W,MTR_ON_RECT_H};    //custom numbers to match bmp
+    const char str[] = "   MTRS\0";
+
+    if(g_LC_ControlState.MotorsEnabled == true)
+    {
+        renderSquare(&MtrsOn_rect,LC_WHITE,LC_DARK_GREEN);
+        renderText(str, m_bigFont, LC_WHITE, MtrsOn_rect);
+    }
+    else
+    {
+        renderSquare(&MtrsOn_rect,LC_BLACK,LC_DARK_GRAY);
+        renderText(str, m_bigFont, LC_WHITE, MtrsOn_rect);
+    }
+}
 /*****************************
  *
  *

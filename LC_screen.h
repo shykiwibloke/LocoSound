@@ -32,8 +32,8 @@
 
 //#NB: Y is up/down and X is left/right for screen coordinates
 #define MOTOR_AREA_X 40
-#define MOTOR_AREA_Y 190
-#define MOTOR_AREA_H 355
+#define MOTOR_AREA_Y 150
+#define MOTOR_AREA_H 385
 #define MOTOR_AREA_W 404
 #define MOTOR_BAR0_X 75
 #define MOTOR_BAR1_X 135
@@ -53,57 +53,70 @@
 #define BANNER_RECT_W 400
 #define BANNER_RECT_H 100
 
-#define THR_RECT_X MOTOR_AREA_X + MOTOR_AREA_W +20      //Throttle Status rectangle
+#define BUTTON_HEIGHT 80            //originally 60
+#define INDICATOR_HEIGHT 60
+#define BTN_TEXT_LEN 15
+#define BTN_GAP 10                  //originally 20
+
+#define THR_RECT_X MOTOR_AREA_X + MOTOR_AREA_W +BTN_GAP      //Throttle Status rectangle
 #define THR_RECT_Y MOTOR_AREA_Y
 #define THR_RECT_W 350
-#define THR_RECT_H 60
+#define THR_RECT_H BUTTON_HEIGHT    //must be bigger than other indicators to look right
 
 #define REV_RECT_X THR_RECT_X                 //Reverser Status rectangle
-#define REV_RECT_Y THR_RECT_Y + THR_RECT_H + 20
+#define REV_RECT_Y THR_RECT_Y + THR_RECT_H + BTN_GAP
 #define REV_RECT_W 350
-#define REV_RECT_H 60
+#define REV_RECT_H INDICATOR_HEIGHT
 
 #define BAT_RECT_X THR_RECT_X                  //Battery voltage rectangle
-#define BAT_RECT_Y REV_RECT_Y + REV_RECT_H + 20
+#define BAT_RECT_Y REV_RECT_Y + REV_RECT_H + BTN_GAP
 #define BAT_RECT_W 350
-#define BAT_RECT_H 60
+#define BAT_RECT_H INDICATOR_HEIGHT
 
 #define AMP_RECT_X THR_RECT_X                  //Amperage voltage rectangle
-#define AMP_RECT_Y BAT_RECT_Y + BAT_RECT_H + 20
+#define AMP_RECT_Y BAT_RECT_Y + BAT_RECT_H + BTN_GAP
 #define AMP_RECT_W 350
-#define AMP_RECT_H 60
+#define AMP_RECT_H INDICATOR_HEIGHT
+
+#define DYN_ON_RECT_X THR_RECT_X             //Dynamic Active indicator light
+#define DYN_ON_RECT_Y AMP_RECT_Y + AMP_RECT_H + BTN_GAP
+#define DYN_ON_RECT_W 170
+#define DYN_ON_RECT_H INDICATOR_HEIGHT
+
+#define MTR_ON_RECT_X DYN_ON_RECT_X + DYN_ON_RECT_W + 10 //Dynamic Active indicator light
+#define MTR_ON_RECT_Y DYN_ON_RECT_Y
+#define MTR_ON_RECT_W 170
+#define MTR_ON_RECT_H INDICATOR_HEIGHT
 
 #define VER_RECT_X THR_RECT_X +40                 //Version  rectangle
-#define VER_RECT_Y AMP_RECT_Y + AMP_RECT_H + 30
+#define VER_RECT_Y DYN_ON_RECT_Y + DYN_ON_RECT_H + 10
 #define VER_RECT_W 300
 #define VER_RECT_H 30
 
-#define START_BTN_X THR_RECT_X + THR_RECT_W + 20    //Engine Start/Stop button
+#define START_BTN_X THR_RECT_X + THR_RECT_W + BTN_GAP    //Engine Start/Stop button
 #define START_BTN_Y MOTOR_AREA_Y
 #define START_BTN_W 160
-#define START_BTN_H 60
+#define START_BTN_H BUTTON_HEIGHT
 
 #define VOL_AREA_X START_BTN_X
-#define VOL_AREA_Y REV_RECT_Y
+#define VOL_AREA_Y START_BTN_Y + START_BTN_H + BTN_GAP
 #define VOL_AREA_W START_BTN_W
-#define VOL_AREA_H MOTOR_AREA_H - START_BTN_H - 20
+#define VOL_AREA_H MOTOR_AREA_H - (MOTOR_AREA_Y - VOL_AREA_Y)
 
-#define VOL_FULL_BTN_X START_BTN_X + 10                  //Select FULL NOISE Button
+#define VOL_FULL_BTN_X START_BTN_X + 5                  //Select FULL NOISE Button
 #define VOL_FULL_BTN_Y REV_RECT_Y + 40
-#define VOL_FULL_BTN_W START_BTN_W - 20
+#define VOL_FULL_BTN_W START_BTN_W - BTN_GAP
 #define VOL_FULL_BTN_H START_BTN_H
 
-#define VOL_HALF_BTN_X START_BTN_X + 10                 //Select FULL NOISE Button
-#define VOL_HALF_BTN_Y VOL_FULL_BTN_Y + VOL_FULL_BTN_H + 10
-#define VOL_HALF_BTN_W START_BTN_W - 20
+#define VOL_HALF_BTN_X START_BTN_X + 5                 //Select FULL NOISE Button
+#define VOL_HALF_BTN_Y VOL_FULL_BTN_Y + VOL_FULL_BTN_H + 5
+#define VOL_HALF_BTN_W START_BTN_W - BTN_GAP
 #define VOL_HALF_BTN_H START_BTN_H
 
-#define VOL_OFF_BTN_X START_BTN_X + 10                  //Select FULL NOISE Button
-#define VOL_OFF_BTN_Y VOL_HALF_BTN_Y + VOL_HALF_BTN_H + 10
-#define VOL_OFF_BTN_W START_BTN_W - 20
+#define VOL_OFF_BTN_X START_BTN_X + 5                  //Select FULL NOISE Button
+#define VOL_OFF_BTN_Y VOL_HALF_BTN_Y + VOL_HALF_BTN_H + 5
+#define VOL_OFF_BTN_W START_BTN_W - BTN_GAP
 #define VOL_OFF_BTN_H START_BTN_H
-
-#define BTN_TEXT_LEN 15
 
 //Basic Colour Definitions
 
@@ -206,6 +219,8 @@ void            updateThrottle(void);
 void            updateReverser(void);
 void            updateBattery(void);
 void            updateAmperage(void);
+void            updateDynOnIndicator(void);
+void            updateMtrsOnIndicator(void);
 void            renderText(const char* text, TTF_Font* font, const SDL_Color colour, SDL_Rect Message_rect);
 void            renderSquare(const SDL_Rect* coords, const SDL_Color lineColour, const SDL_Color fillColour);
 void            addMessageLine(const char* msgline);

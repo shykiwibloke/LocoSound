@@ -34,6 +34,7 @@ int setFilePath(const char *path, bool forceCreate)
                 fprintf(stderr,"Could not create or verify directory '%s'\n",path);
                 return 1;
             }
+
             chdir(path);
         }
         else
@@ -100,7 +101,7 @@ void openLogFile(void)
 
         atexit(closeLogFile);
 
-        fprintf(stderr,"Debug option Set. Log File created.\n");
+         fprintf(stderr,"Debug option Set. Log File created.\n");
 
 	}
 

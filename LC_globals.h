@@ -9,6 +9,8 @@
 #ifndef LocoControl_LC_globals_h
 #define LocoControl_LC_globals_h
 
+#define PROGRAM_VERSION "Version 2.3.0 Released 28 May 2019\0"
+
 #include <stdbool.h>
 
 /*******************************************
@@ -43,13 +45,13 @@ typedef struct {
     int             motorAmps[6];       //amps returned as milliamps - to avoid using floats in comms. Zero based array
     int             speed;              //actual ground speed returned as meters per hour to avoid using floats
     float           vbat;               //Current traction battery voltage
+    bool            MotorsEnabled;      //True if the traction motors are enabled
+    bool            DynamicEnabled;     //True if the Dynamic Braking mode is enabled
 } LC_ControlState_t;
 
 
 bool				g_Debug;       //Global Debug flag set by command line option if true then enable debugging info to screen
 LC_ControlState_t	g_LC_ControlState;     //Global state of the controls
 SDL_Event			g_event;			   //SDL event handling object
-
-
 
 #endif

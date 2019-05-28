@@ -4,7 +4,7 @@ This is a series of notes to remind me what I was going to do next
 1) DONE- Test Debug mode - need a log file output - repurpose -P flag or collapse so -d also specifies file seed (never overwrite logs)
 2) DONE- Amperage sort of working - gets stuck - determine if motors need wiring reversed so all the same. Does amps work in reverse?
 3) DONE - Need volume control for overall engine
-4) Spread dryer sound over time more - edit sound file directly
+4) DONE - Spread dryer sound over time more - edit sound file directly
 5) DONE - Make amp text bigger
 6) DONE - Change serial speed to 115200 (raspi)
 7) DONE - Change serial speed to 34800 (motor controllers)
@@ -16,5 +16,10 @@ This is a series of notes to remind me what I was going to do next
 13) DONE Add 'Starting' mode for prime mover.
 14) Fine Tune Engine sound defaults in config file
 15) DONE Air Dryer sounds do not turn off when motor restarted.
-16) Speedo? - Maybe even use that as an input to dynamic braking?
+16) Speedo - add Speedo
+17) TODO to match LocoControl 4.2.0
+    a) DONE - Change Background for throttle to be green when mode is idle
+    b) DONE - Add light for Dynamic Mode as a kind of warning
+    c) DONE - Make all buttons taller
+    d) Need a shutdown button on screen
 18) Remove the old logMessage routine and repoint all the calls

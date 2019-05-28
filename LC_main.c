@@ -317,6 +317,15 @@ void actionArduinoCommand(void)
                 }
             }
 			break;
+
+		case 'E'            //Motors Enabled switch message from Arduino
+            g_LC_ControlState.MotorsEnabled = strtol(&cmd_arg,NULL,10);
+            break;
+
+		case 'B'            //dynamic Brake switch message from Arduino
+            g_LC_ControlState.DynamicEnabled = strtol(&cmd_arg,NULL,10)
+            break;
+
 		default:
 
 			logString("Unrecognised command:",cmd_str);
@@ -369,6 +378,7 @@ void initGlobals()
 void initModules(void)
 {
     addMessageLine("Winter Creek Loco Sound (c) 2017-2019 Initializing...");
+    addMessageLine(PROGRAM_VERSION);
 
     #ifdef _WIN32
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING,"1");
