@@ -261,7 +261,17 @@ void actionArduinoCommand(void)
 		return;
 	}
 
-    logString("From Arduino: ",cmd_str);
+
+    if(cmd_str[1] != ':')   //no colon - could be a rogue log message
+    {
+        logString("Unformatted command:",cmd_str);;
+        return;
+    }
+    else
+    {
+        logString("From Arduino: ",cmd_str);
+
+    }
 
 	//string determined to be complete - extract the three fields we want
 	cmd_class = cmd_str[0];

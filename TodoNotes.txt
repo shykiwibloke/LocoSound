@@ -1,25 +1,10 @@
 
 This is a series of notes to remind me what I was going to do next
 
-1) DONE- Test Debug mode - need a log file output - repurpose -P flag or collapse so -d also specifies file seed (never overwrite logs)
-2) DONE- Amperage sort of working - gets stuck - determine if motors need wiring reversed so all the same. Does amps work in reverse?
-3) DONE - Need volume control for overall engine
-4) DONE - Spread dryer sound over time more - edit sound file directly
-5) DONE - Make amp text bigger
-6) DONE - Change serial speed to 115200 (raspi)
-7) DONE - Change serial speed to 34800 (motor controllers)
-8) DONE - Change SetFileDataPath away from cmd-line to config file only
-9) DONE - Add Baby filePath or hardwire to subdirs for sounds and graphics
-10) DONE - If Config file not found in program directory - create one (otherwise user does not know the default values...)
-11) DONE - Harmonize the addmessageline() and fprintf to stderr calls all over the codebase.
-12) Update instructions
-13) DONE Add 'Starting' mode for prime mover.
-14) Fine Tune Engine sound defaults in config file
-15) DONE Air Dryer sounds do not turn off when motor restarted.
-16) Speedo - add Speedo
-17) TODO to match LocoControl 4.2.0
-    a) DONE - Change Background for throttle to be green when mode is idle
-    b) DONE - Add light for Dynamic Mode as a kind of warning
-    c) DONE - Make all buttons taller
-    d) Need a shutdown button on screen
-18) Remove the old logMessage routine and repoint all the calls
+1)  Fix Config Generate bug that does not create screen height variable
+2)  Add Speedo
+3)  Write Instruction Manual
+4)  Think about adding 'Vigilance!' visual warning to screen, making sound quieter or some other trick to make it audible
+5) Remove the old logMessage routine and repoint all the calls
+6) Reconnect LowPowerLabs shutdown wiring & Install code for Raspi
+7) Autostart locomotive on startup?
