@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 5/06/15.
 //  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 2.0.0 released 24/04/2019
+//  VERSION 2.1.0 released 21/12/2019
 
 #ifdef linux
 #ifndef __LocoControl__LC_serial__

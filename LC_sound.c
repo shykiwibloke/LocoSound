@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 2.0.0 released 24/04/2019
+//  VERSION 2.1.0 released 21/12/2019
 
 #include "LC_sound.h"
 
@@ -77,7 +77,7 @@ void soundService()
                 queueSound(&m_EngineQueue,2,SF_IDLE,0,0,LC_PLAY_LOOP);
                 playQueueItem(&m_EngineQueue);
 
-                clearQueue(&m_AirCompQueue);
+                clearQueue(&m_AirCompQueue);        //This should already be done by clear all queues above?
                 if(m_AirCompQueue.IsPlaying)
                 {
                     fadeOutQueue(&m_AirCompQueue,m_fadeShort);  //force current sounds to fade out - we are not stopped any longer.
@@ -458,12 +458,15 @@ void playQueueItem(LC_SoundQueue_t *pQ)
  *********************************************/
 void fadeOutQueue(LC_SoundQueue_t *pQ,const Uint32 fadeOut)
 {
-	pQ->currentFadeStart = SDL_GetTicks();         //Trigger the fade out of the sound in the service channel code
+	pQ->currentFadeStart = SDL_GetTicks()-1;         //Trigger the fade out of the sound in the serviceChannel() call
 	pQ->fadeOutTime[pQ->currentItem] = fadeOut;
-	pQ->currentPlayEnd = SDL_GetTicks() + fadeOut; //Trigger the end of the sound in the service channel code
+	pQ->currentPlayEnd = pQ->currentFadeStart + fadeOut; //Trigger the end of the sound in the service channel code
 	pQ->loopCount[pQ->currentItem] = 0;
-	pQ->soundChunk[(pQ->currentItem)+1] = NULL;
-
+	if( pQ->currentItem < LC_SOUND_QUEUE_MAX)         //Dont alter next sound if we are at the end of the queue
+    {
+        pQ->loopCount[(pQ->currentItem)+1] = 0;
+        pQ->soundChunk[(pQ->currentItem)+1] = NULL;
+    }
     logString("fadeOutQueue() for ",pQ->Qlabel);
 	logInt("fadeOutQueue() channel ",pQ->channel);
 	serviceChannel(pQ);
@@ -497,8 +500,7 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 		else if (SDL_TICKS_PASSED(currentTime, pQ->currentFadeStart))
 		{
 			logInt("serviceChannel()Fading out sound on channel ", pQ->channel);
-			//IF the next sound is zero length AND we are not going to be at the end of the queue
-			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]+1);
+			Mix_FadeOutChannel(pQ->channel, pQ->fadeOutTime[pQ->currentItem]);
 			finishPlayingSound(pQ);
 		}
 	}
@@ -511,31 +513,26 @@ void serviceChannel(LC_SoundQueue_t *pQ)
 **********************************************/
 void finishPlayingSound(LC_SoundQueue_t *pQ)
 {
+    //If sound is complete and there are no more in this queue - then shut the queue down here even though we might be still fading
 
-   	int next = pQ->currentItem +1;
-
-	if(pQ->soundChunk[next] == NULL && next < LC_SOUND_QUEUE_MAX)
+    if(pQ->currentItem == LC_SOUND_QUEUE_MAX)   //got to max queue - have to check first to avoid bad pointer
+    {
+        pQ->IsPlaying = false;
+        pQ->IsInTransition = false;
+		pQ->IsLooping = false;
+        logString("finishPlayingSound() Queue reached max samples ",pQ->Qlabel);
+    }
+    else if(pQ->soundChunk[pQ->currentItem +1] == NULL)  //if next item is a null then no more in queue
 	{
-		//If sound is complete and there are no more in this queue - then shut the queue down here even though we might be still fading
 		pQ->IsPlaying = false;
 		pQ->IsInTransition = false;
 		pQ->IsLooping = false;
 		logString("finishPlayingSound() Queue reached end ",pQ->Qlabel);
 	}
-	else if(next == LC_SOUND_QUEUE_MAX)  //IF we are at the end of the queue entirely
-	{
-		pQ->IsPlaying = false;
-        pQ->IsInTransition = false;
-		pQ->IsLooping = false;
-        logString("finishPlayingSound() Queue reached max samples ",pQ->Qlabel);
-
-	}
 	else
 	{
 		// there are more in this queue - so tidy up and go start the next one.
 		logString("finishPlayingSound() Queuing next for ",pQ->Qlabel);
-
-        next++;
 		pQ->currentItem++;      //inc array index and start the next sound
 		playQueueItem(pQ);
 	}
@@ -576,7 +573,11 @@ void showChannelSummary(void)
             else
             {
                 ptr = Q_LABEL_U;              //Unkown or Orphan
-                //todo - mark this for deletion next time around if in same state
+                if(Mix_FadingChannel(f))
+                {
+                    snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is fading for %s", f, ptr);
+                    addMessageLine(m_msgTempLine);
+                }
             }
 
             snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is playing for %s", f, ptr);
@@ -593,6 +594,44 @@ void showChannelSummary(void)
 
 /*********************************************
  *
+ * Checks all the sound channels and kills any orphans
+ * Called from main loop every 10 seconds
+ *
+ *********************************************/
+void soundChannelWatchdog(void)
+{
+
+    int     f = 0;
+
+    for(f=0; f<LC_MAX_CHANNELS;f++)
+    {
+        if(Mix_Playing(f))  //If channel is active...
+        {
+            if(             //AND if channel is NOT associated with any valid queue...
+              (m_EngineQueue.channel != f && m_EngineQueue.IsPlaying)
+            &&(m_DynBrakeQueue.channel != f && m_DynBrakeQueue.IsPlaying)
+            &&(m_HornQueue.channel != f && m_HornQueue.IsPlaying)
+            &&(m_AirCompQueue.channel != f && m_AirCompQueue.IsPlaying)
+            &&(m_TractionQueue.channel != f && m_TractionQueue.IsPlaying)
+            )
+            {
+                if(!Mix_FadingChannel(f))  // AND if the channel is not current fading - then it is likely an Orphan
+                {
+                    snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is being HALTED by soundChannelWatchdog()", f);
+                    addMessageLine(m_msgTempLine);
+                    Mix_HaltChannel(f);
+
+                    //Note - channel could have been caught just as it was closing, but additional halt command should not hurt
+                }
+            }
+        }
+     }
+}
+
+
+
+/*********************************************
+ *
  * Clear all Queues  - clears all queues to default state
  *
  *********************************************/
@@ -604,7 +643,8 @@ void showChannelSummary(void)
 
     for(f=0;f<LC_MAX_CHANNELS;f++)
     {
-               Mix_FadeOutChannel(f,1);
+              // Mix_FadeOutChannel(f,1);
+              Mix_HaltChannel(f);
     }
 
 	clearQueue(&m_EngineQueue);

@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 2.0.0 released 24/04/2019
+//  VERSION 2.1.0 released 21/12/2019
 //
 
 #include "LC_main.h"
@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
 {
 
 	int 	quit = 0;
-	Uint32 	nextRefresh = 0;
+	Uint32 	nextScreenRefresh = 0;
+	Uint32 	nextSoundChannelWatchdog = 0;
 
     iniFilePaths();
 
@@ -67,12 +68,18 @@ int main(int argc, char *argv[])
 		soundService();								//Service Sound Subsystem - very frequently!
 
         //Service Screen Subsystem once per 1/4 second
-		if SDL_TICKS_PASSED(SDL_GetTicks(),nextRefresh)
+		if SDL_TICKS_PASSED(SDL_GetTicks(),nextScreenRefresh)
 		{
  			screenService();
- 			nextRefresh = SDL_GetTicks() + 250;
+ 			nextScreenRefresh = SDL_GetTicks() + 250;
         }
 
+        //Service Screen Subsystem once per 10 seconds
+		if SDL_TICKS_PASSED(SDL_GetTicks(),nextSoundChannelWatchdog)
+		{
+  			soundChannelWatchdog();
+ 			nextSoundChannelWatchdog = SDL_GetTicks() + 10000;
+        }
 	}  //End of Main Loop
 
 	closeProgram();         //Go clean up
@@ -118,6 +125,9 @@ int handleKey(SDL_KeyboardEvent key) {
 				addMessageLine("Error: Cannot set notch. Throttle or Dynamic not set");
 			}
 			break;
+		case SDLK_b:
+            g_LC_ControlState.DynamicEnabled = !g_LC_ControlState.DynamicEnabled;
+            break;
 		case SDLK_c:
  			addMessageLine("Clearing current sound queues");
             clearAllQueues();               //resets the sound
