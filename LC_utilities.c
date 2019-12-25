@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 2.1.0 released 21/12/2019
+//  VERSION 2.4.0 released 26/12/2019
 
 #include "LC_utilities.h"
 

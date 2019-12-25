@@ -5,7 +5,7 @@
 //  Created by Chris Draper on 6/05/15.
 //  Copyright (c) 2015-2019. All rights reserved.
 //
-//  VERSION 2.1.0 released 21/12/2019
+//  VERSION 2.4.0 released 26/12/2019
 
 #include "LC_sound.h"
 
@@ -601,6 +601,10 @@ void showChannelSummary(void)
 void soundChannelWatchdog(void)
 {
 
+    snprintf(m_msgTempLine,LC_MSGLINE_LEN,"XX- Sound Channel Watchdog Run -XX");   //only appears in log with debug flag set
+    addMessageLine(m_msgTempLine);
+
+
     int     f = 0;
 
     for(f=0; f<LC_MAX_CHANNELS;f++)
@@ -608,16 +612,16 @@ void soundChannelWatchdog(void)
         if(Mix_Playing(f))  //If channel is active...
         {
             if(             //AND if channel is NOT associated with any valid queue...
-              (m_EngineQueue.channel != f && m_EngineQueue.IsPlaying)
-            &&(m_DynBrakeQueue.channel != f && m_DynBrakeQueue.IsPlaying)
-            &&(m_HornQueue.channel != f && m_HornQueue.IsPlaying)
-            &&(m_AirCompQueue.channel != f && m_AirCompQueue.IsPlaying)
-            &&(m_TractionQueue.channel != f && m_TractionQueue.IsPlaying)
+              (m_EngineQueue.channel != f)
+            &&(m_DynBrakeQueue.channel != f)
+            &&(m_HornQueue.channel != f)
+            &&(m_AirCompQueue.channel != f)
+            &&(m_TractionQueue.channel != f)
             )
             {
                 if(!Mix_FadingChannel(f))  // AND if the channel is not current fading - then it is likely an Orphan
                 {
-                    snprintf(m_msgTempLine,LC_MSGLINE_LEN,"%d channel is being HALTED by soundChannelWatchdog()", f);
+                    snprintf(m_msgTempLine,LC_MSGLINE_LEN,"Channel %d HALTED by soundChannelWatchdog()", f);
                     addMessageLine(m_msgTempLine);
                     Mix_HaltChannel(f);
 
